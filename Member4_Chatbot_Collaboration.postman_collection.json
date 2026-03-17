@@ -1,0 +1,445 @@
+{
+  "info": {
+    "name": "Bangla Trek - Member 4",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Chatbot Refinement",
+      "item": [
+        {
+          "name": "Send Chat Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "demo_user",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/itineraries/saved_301/chat",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "itineraries",
+                "saved_301",
+                "chat"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"message\": \"Can we make it more focused on nature?\",\n    \"context_version\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Apply Changes",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "demo_user",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/itineraries/saved_301/chat/apply",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "itineraries",
+                "saved_301",
+                "chat",
+                "apply"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"accepted_change_ids\": [\n        \"<replace_with_change_id_from_response>\"\n    ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Chat History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "demo_user",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/itineraries/saved_301/chat/history",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "itineraries",
+                "saved_301",
+                "chat",
+                "history"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Seasonal Alert",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "demo_user",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seasonal-alerts?destination=Sylhet&travel_month=July",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seasonal-alerts?destination=Sylhet&travel_month=July"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Collaborative Planning",
+      "item": [
+        {
+          "name": "Get Itinerary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "demo_user",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/group-trips/group_201/itinerary",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "group-trips",
+                "group_201",
+                "itinerary"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Activity",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "demo_user",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/group-trips/group_201/itinerary/activities",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "group-trips",
+                "group_201",
+                "itinerary",
+                "activities"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"day\": 2,\n    \"title\": \"Visit waterfall\",\n    \"time\": \"10:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Activity",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "demo_user",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/group-trips/group_201/itinerary/activities/act_1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "group-trips",
+                "group_201",
+                "itinerary",
+                "activities",
+                "act_1"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Reach Sajek earlier\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Activity",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "demo_user",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/group-trips/group_201/itinerary/activities/act_1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "group-trips",
+                "group_201",
+                "itinerary",
+                "activities",
+                "act_1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upsert Presence",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "demo_user",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/group-trips/group_201/presence",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "group-trips",
+                "group_201",
+                "presence"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"status\": \"online\",\n    \"editing_target\": \"Day 1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Presence",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "demo_user",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/group-trips/group_201/presence",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "group-trips",
+                "group_201",
+                "presence"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Poll",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "demo_user",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/group-trips/group_201/polls",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "group-trips",
+                "group_201",
+                "polls"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"question\": \"Which resort for day 3?\",\n    \"type\": \"accommodation\",\n    \"options\": [\n        {\n            \"label\": \"Resort A\"\n        },\n        {\n            \"label\": \"Resort B\"\n        }\n    ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Vote on Poll",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "demo_user",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/group-trips/group_201/polls/poll_11/vote",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "group-trips",
+                "group_201",
+                "polls",
+                "poll_11",
+                "vote"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"option_id\": \"opt_1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Polls",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "demo_user",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/group-trips/group_201/polls",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "group-trips",
+                "group_201",
+                "polls"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Activity Feed",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "demo_user",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/group-trips/group_201/activity-feed",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "group-trips",
+                "group_201",
+                "activity-feed"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000/api/v1",
+      "type": "string"
+    }
+  ]
+}
