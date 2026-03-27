@@ -1,6 +1,9 @@
 import json
+import logging
 import uuid
 from typing import List, Optional, Tuple
+
+logger = logging.getLogger(__name__)
 
 from google import genai
 from sqlalchemy import desc, func, select
@@ -15,7 +18,7 @@ from app.schemas.itinerary import ItineraryGenerateRequest
 # ── Gemini client ──
 
 client = genai.Client(api_key=settings.GEMINI_API_KEY)
-MODEL = "gemini-2.0-flash"
+MODEL = "gemini-2.5-flash"
 
 
 def _build_prompt(
@@ -205,10 +208,16 @@ class ItineraryService:
 
     def _call_gemini(self, prompt: str) -> list:
         """Call Gemini API and parse the JSON response."""
-        response = client.models.generate_content(
-            model=MODEL,
-            contents=prompt,
-        )
+        try:
+            logger.info("Calling Gemini API with model: %s", MODEL)
+            response = client.models.generate_content(
+                model=MODEL,
+                contents=prompt,
+            )
+            logger.info("Gemini API responded successfully")
+        except Exception as e:
+            logger.error("Gemini API error: %s", str(e))
+            raise ValueError(f"AI service error: {str(e)}")
 
         # Extract text from response
         text = response.text.strip()
@@ -223,6 +232,7 @@ class ItineraryService:
         try:
             activities = json.loads(text)
         except json.JSONDecodeError:
+            logger.error("Failed to parse JSON: %s", text[:500])
             raise ValueError(
                 "Failed to parse itinerary from AI response. Please try again."
             )
