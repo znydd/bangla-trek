@@ -199,7 +199,7 @@ export function EntryDetail({ entry, onDelete, isDeleting }: EntryDetailProps) {
               variant="destructive"
               onClick={handleDelete}
               disabled={isDeleting}
-              className="min-w-[100px]"
+              className="min-w-25"
             >
               {isDeleting ? (
                 <>
