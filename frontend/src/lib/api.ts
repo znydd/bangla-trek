@@ -10,6 +10,12 @@ api.interceptors.response.use(
   (res) => res,
   async (error) => {
     const originalRequest = error.config;
+    
+    // Don't redirect if we are already trying to refresh or check current user
+    const skipRedirect = 
+      originalRequest.url?.includes("/api/v1/auth/me") || 
+      originalRequest.url?.includes("/api/v1/auth/refresh");
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
@@ -19,9 +25,11 @@ api.interceptors.response.use(
           { withCredentials: true },
         );
         return api(originalRequest);
-      } catch {
-        window.location.href = "/login";
-        return Promise.reject(error);
+      } catch (refreshError) {
+        if (!skipRedirect) {
+          window.location.href = "/login";
+        }
+        return Promise.reject(refreshError);
       }
     }
     return Promise.reject(error);

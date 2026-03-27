@@ -10,9 +10,14 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as AuthenticatedRouteImport } from './routes/authenticated'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
+import { Route as AuthenticatedAuthenticatedRouteImport } from './routes/_authenticated/authenticated'
+import { Route as AuthenticatedCommunityIndexRouteImport } from './routes/_authenticated/community/index'
+import { Route as AuthenticatedCommunityNewRouteImport } from './routes/_authenticated/community/new'
+import { Route as AuthenticatedCommunityEntryIdRouteImport } from './routes/_authenticated/community/$entryId'
+import { Route as AuthenticatedCommunityEntryIdEditRouteImport } from './routes/_authenticated/community/$entryId_.edit'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -20,8 +25,7 @@ const LoginRoute = LoginRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
-  id: '/authenticated',
-  path: '/authenticated',
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -34,37 +38,106 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAuthenticatedRoute =
+  AuthenticatedAuthenticatedRouteImport.update({
+    id: '/authenticated',
+    path: '/authenticated',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedCommunityIndexRoute =
+  AuthenticatedCommunityIndexRouteImport.update({
+    id: '/community/',
+    path: '/community/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedCommunityNewRoute =
+  AuthenticatedCommunityNewRouteImport.update({
+    id: '/community/new',
+    path: '/community/new',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedCommunityEntryIdRoute =
+  AuthenticatedCommunityEntryIdRouteImport.update({
+    id: '/community/$entryId',
+    path: '/community/$entryId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedCommunityEntryIdEditRoute =
+  AuthenticatedCommunityEntryIdEditRouteImport.update({
+    id: '/community/$entryId_/edit',
+    path: '/community/$entryId/edit',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/authenticated': typeof AuthenticatedRoute
   '/login': typeof LoginRoute
+  '/authenticated': typeof AuthenticatedAuthenticatedRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/community/$entryId': typeof AuthenticatedCommunityEntryIdRoute
+  '/community/new': typeof AuthenticatedCommunityNewRoute
+  '/community/': typeof AuthenticatedCommunityIndexRoute
+  '/community/$entryId/edit': typeof AuthenticatedCommunityEntryIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/authenticated': typeof AuthenticatedRoute
   '/login': typeof LoginRoute
+  '/authenticated': typeof AuthenticatedAuthenticatedRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/community/$entryId': typeof AuthenticatedCommunityEntryIdRoute
+  '/community/new': typeof AuthenticatedCommunityNewRoute
+  '/community': typeof AuthenticatedCommunityIndexRoute
+  '/community/$entryId/edit': typeof AuthenticatedCommunityEntryIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/authenticated': typeof AuthenticatedRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
+  '/_authenticated/authenticated': typeof AuthenticatedAuthenticatedRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/_authenticated/community/$entryId': typeof AuthenticatedCommunityEntryIdRoute
+  '/_authenticated/community/new': typeof AuthenticatedCommunityNewRoute
+  '/_authenticated/community/': typeof AuthenticatedCommunityIndexRoute
+  '/_authenticated/community/$entryId_/edit': typeof AuthenticatedCommunityEntryIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/authenticated' | '/login' | '/auth/callback'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/authenticated'
+    | '/auth/callback'
+    | '/community/$entryId'
+    | '/community/new'
+    | '/community/'
+    | '/community/$entryId/edit'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/authenticated' | '/login' | '/auth/callback'
-  id: '__root__' | '/' | '/authenticated' | '/login' | '/auth/callback'
+  to:
+    | '/'
+    | '/login'
+    | '/authenticated'
+    | '/auth/callback'
+    | '/community/$entryId'
+    | '/community/new'
+    | '/community'
+    | '/community/$entryId/edit'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/login'
+    | '/_authenticated/authenticated'
+    | '/auth/callback'
+    | '/_authenticated/community/$entryId'
+    | '/_authenticated/community/new'
+    | '/_authenticated/community/'
+    | '/_authenticated/community/$entryId_/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AuthenticatedRoute: typeof AuthenticatedRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   LoginRoute: typeof LoginRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
 }
@@ -78,10 +151,10 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/authenticated': {
-      id: '/authenticated'
-      path: '/authenticated'
-      fullPath: '/authenticated'
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
@@ -99,12 +172,68 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/authenticated': {
+      id: '/_authenticated/authenticated'
+      path: '/authenticated'
+      fullPath: '/authenticated'
+      preLoaderRoute: typeof AuthenticatedAuthenticatedRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/community/': {
+      id: '/_authenticated/community/'
+      path: '/community'
+      fullPath: '/community/'
+      preLoaderRoute: typeof AuthenticatedCommunityIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/community/new': {
+      id: '/_authenticated/community/new'
+      path: '/community/new'
+      fullPath: '/community/new'
+      preLoaderRoute: typeof AuthenticatedCommunityNewRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/community/$entryId': {
+      id: '/_authenticated/community/$entryId'
+      path: '/community/$entryId'
+      fullPath: '/community/$entryId'
+      preLoaderRoute: typeof AuthenticatedCommunityEntryIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/community/$entryId_/edit': {
+      id: '/_authenticated/community/$entryId_/edit'
+      path: '/community/$entryId/edit'
+      fullPath: '/community/$entryId/edit'
+      preLoaderRoute: typeof AuthenticatedCommunityEntryIdEditRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
+interface AuthenticatedRouteChildren {
+  AuthenticatedAuthenticatedRoute: typeof AuthenticatedAuthenticatedRoute
+  AuthenticatedCommunityEntryIdRoute: typeof AuthenticatedCommunityEntryIdRoute
+  AuthenticatedCommunityNewRoute: typeof AuthenticatedCommunityNewRoute
+  AuthenticatedCommunityIndexRoute: typeof AuthenticatedCommunityIndexRoute
+  AuthenticatedCommunityEntryIdEditRoute: typeof AuthenticatedCommunityEntryIdEditRoute
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAuthenticatedRoute: AuthenticatedAuthenticatedRoute,
+  AuthenticatedCommunityEntryIdRoute: AuthenticatedCommunityEntryIdRoute,
+  AuthenticatedCommunityNewRoute: AuthenticatedCommunityNewRoute,
+  AuthenticatedCommunityIndexRoute: AuthenticatedCommunityIndexRoute,
+  AuthenticatedCommunityEntryIdEditRoute:
+    AuthenticatedCommunityEntryIdEditRoute,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AuthenticatedRoute: AuthenticatedRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LoginRoute: LoginRoute,
   AuthCallbackRoute: AuthCallbackRoute,
 }

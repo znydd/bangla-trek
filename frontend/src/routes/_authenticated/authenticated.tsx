@@ -1,16 +1,8 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { currentUserQueryOptions } from "@/services/auth.service";
 import api from "@/lib/api";
 
-export const Route = createFileRoute("/authenticated")({
-  beforeLoad: async ({ context }) => {
-    try {
-      await context.queryClient.ensureQueryData(currentUserQueryOptions);
-    } catch {
-      throw redirect({ to: "/" });
-    }
-  },
+export const Route = createFileRoute("/_authenticated/authenticated")({
   component: AuthenticatedPage,
 });
 
@@ -19,7 +11,7 @@ function AuthenticatedPage() {
 
   const handleLogout = async () => {
     await api.post("/api/v1/auth/logout");
-    queryClient.clear(); // wipe cache before navigating so no stale refetch fires
+    queryClient.clear();
     window.location.href = "/";
   };
 
