@@ -6,7 +6,7 @@ from alembic import context
 
 from app.config import settings
 from app.db.base import Base
-from app.models import User  # noqa: F401 — registers models with Base.metadata
+from app import models  # noqa: F401 — registers all models with Base.metadata
 
 config = context.config
 
