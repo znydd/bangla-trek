@@ -6,6 +6,8 @@ import { TagBadge } from "./TagBadge";
 import { CategoryIcon, getCategoryLabel } from "./CategoryIcon";
 import { getPriceRangeLabel } from "./EntryCard";
 import { useAuth } from "@/hooks/useAuth";
+import { NomadMetrics } from "./NomadMetrics";
+import { LocationMap } from "@/components/community/LocationMap";
 import { 
   MoreVertical, 
   Edit, 
@@ -161,7 +163,15 @@ export function EntryDetail({ entry, onDelete, isDeleting }: EntryDetailProps) {
             <h3 className="font-semibold text-lg mb-4">Amenities</h3>
             <AmenitiesList amenities={entry.amenities} />
           </section>
-
+          <section>
+            <h3 className="font-semibold text-lg mb-3">Location</h3>
+            <LocationMap
+              latitude={entry.latitude}
+              longitude={entry.longitude}
+              locationQuery={entry.location}
+              name={entry.name}
+            />
+          </section>
           {entry.video_embeds.length > 0 && (
             <section className="space-y-4">
               <h3 className="font-semibold text-xl">Videos</h3>
@@ -174,7 +184,7 @@ export function EntryDetail({ entry, onDelete, isDeleting }: EntryDetailProps) {
           )}
         </div>
       </div>
-
+      <NomadMetrics entryId={entry.id} />
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
