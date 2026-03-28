@@ -31,6 +31,9 @@ class Settings(BaseSettings):
     CLOUDINARY_API_KEY: str
     CLOUDINARY_API_SECRET: str
 
+    # Gemini LLM
+    GEMINI_API_KEY: str
+
     # Environment
     IS_PRODUCTION: bool = False
 

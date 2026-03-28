@@ -31,7 +31,10 @@ export default function Navbar() {
               <Map size={16} className="mr-2" />
               Community
             </Button>
-            {/* Add other main nav items here in future phases */}
+            <Button variant="ghost" render={<Link to="/planner" activeProps={{ className: "text-foreground bg-muted" }} />} className="font-medium text-muted-foreground hover:text-foreground">
+              <Compass size={16} className="mr-2" />
+              AI Planner
+            </Button>
           </div>
         </div>
 
