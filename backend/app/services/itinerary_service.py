@@ -18,7 +18,7 @@ from app.schemas.itinerary import ItineraryGenerateRequest
 # ── Gemini client ──
 
 client = genai.Client(api_key=settings.GEMINI_API_KEY)
-MODEL = "gemini-2.5-flash"
+MODEL = "gemini-3.1-flash-lite-preview"
 
 
 def _build_prompt(
@@ -133,18 +133,22 @@ class ItineraryService:
             if community_entry_id:
                 try:
                     community_entry_id = uuid.UUID(community_entry_id)
+                    # Ensure it actually exists in the DB to prevent ForeignKeyViolation
+                    exists = self.db.query(CommunityEntry.id).filter(CommunityEntry.id == community_entry_id).first()
+                    if not exists:
+                        community_entry_id = None
                 except (ValueError, AttributeError):
                     community_entry_id = None
 
             activity = ItineraryActivity(
                 day_number=activity_data["day_number"],
-                start_time=activity_data["start_time"],
-                end_time=activity_data["end_time"],
-                title=activity_data["title"],
-                description=activity_data["description"],
-                estimated_cost=float(activity_data.get("estimated_cost", 0)),
-                location=activity_data["location"],
-                category=activity_data.get("category", "activity"),
+                start_time=str(activity_data["start_time"])[:5],
+                end_time=str(activity_data["end_time"])[:5],
+                title=str(activity_data["title"])[:255],
+                description=str(activity_data["description"]),
+                estimated_cost=float(activity_data["estimated_cost"]),
+                location=str(activity_data["location"])[:500],
+                category=str(activity_data["category"])[:30],
                 community_entry_id=community_entry_id,
             )
             itinerary.activities.append(activity)

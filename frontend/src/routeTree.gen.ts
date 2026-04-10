@@ -22,8 +22,11 @@ import { Route as AuthenticatedTripsTripIdRouteImport } from './routes/_authenti
 import { Route as AuthenticatedPlannerItineraryIdRouteImport } from './routes/_authenticated/planner/$itineraryId'
 import { Route as AuthenticatedCommunityNewRouteImport } from './routes/_authenticated/community/new'
 import { Route as AuthenticatedCommunityEntryIdRouteImport } from './routes/_authenticated/community/$entryId'
+import { Route as AuthenticatedPlannerItineraryIdIndexRouteImport } from './routes/_authenticated/planner/$itineraryId/index'
 import { Route as AuthenticatedTripsJoinInviteCodeRouteImport } from './routes/_authenticated/trips/join/$inviteCode'
 import { Route as AuthenticatedCommunityEntryIdEditRouteImport } from './routes/_authenticated/community/$entryId_.edit'
+import { Route as AuthenticatedPlannerItineraryIdAccommodationsIndexRouteImport } from './routes/_authenticated/planner/$itineraryId/accommodations/index'
+import { Route as AuthenticatedPlannerItineraryIdAccommodationsAccommodationIdRouteImport } from './routes/_authenticated/planner/$itineraryId/accommodations/$accommodationId'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -96,6 +99,10 @@ const AuthenticatedCommunityEntryIdRoute =
     path: '/community/$entryId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedPlannerItineraryIdIndexRoute =
+  AuthenticatedPlannerItineraryIdIndexRouteImport.update({
+    id: '/planner/$itineraryId/',
+    path: '/planner/$itineraryId/',
 const AuthenticatedTripsJoinInviteCodeRoute =
   AuthenticatedTripsJoinInviteCodeRouteImport.update({
     id: '/trips/join/$inviteCode',
@@ -108,6 +115,20 @@ const AuthenticatedCommunityEntryIdEditRoute =
     path: '/community/$entryId/edit',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedPlannerItineraryIdAccommodationsIndexRoute =
+  AuthenticatedPlannerItineraryIdAccommodationsIndexRouteImport.update({
+    id: '/planner/$itineraryId/accommodations/',
+    path: '/planner/$itineraryId/accommodations/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedPlannerItineraryIdAccommodationsAccommodationIdRoute =
+  AuthenticatedPlannerItineraryIdAccommodationsAccommodationIdRouteImport.update(
+    {
+      id: '/planner/$itineraryId/accommodations/$accommodationId',
+      path: '/planner/$itineraryId/accommodations/$accommodationId',
+      getParentRoute: () => AuthenticatedRoute,
+    } as any,
+  )
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -121,6 +142,10 @@ export interface FileRoutesByFullPath {
   '/trips/new': typeof AuthenticatedTripsNewRoute
   '/community/': typeof AuthenticatedCommunityIndexRoute
   '/planner/': typeof AuthenticatedPlannerIndexRoute
+  '/community/$entryId/edit': typeof AuthenticatedCommunityEntryIdEditRoute
+  '/planner/$itineraryId/': typeof AuthenticatedPlannerItineraryIdIndexRoute
+  '/planner/$itineraryId/accommodations/$accommodationId': typeof AuthenticatedPlannerItineraryIdAccommodationsAccommodationIdRoute
+  '/planner/$itineraryId/accommodations/': typeof AuthenticatedPlannerItineraryIdAccommodationsIndexRoute
   '/trips/': typeof AuthenticatedTripsIndexRoute
   '/community/$entryId/edit': typeof AuthenticatedCommunityEntryIdEditRoute
   '/trips/join/$inviteCode': typeof AuthenticatedTripsJoinInviteCodeRoute
@@ -137,6 +162,10 @@ export interface FileRoutesByTo {
   '/trips/new': typeof AuthenticatedTripsNewRoute
   '/community': typeof AuthenticatedCommunityIndexRoute
   '/planner': typeof AuthenticatedPlannerIndexRoute
+  '/community/$entryId/edit': typeof AuthenticatedCommunityEntryIdEditRoute
+  '/planner/$itineraryId': typeof AuthenticatedPlannerItineraryIdIndexRoute
+  '/planner/$itineraryId/accommodations/$accommodationId': typeof AuthenticatedPlannerItineraryIdAccommodationsAccommodationIdRoute
+  '/planner/$itineraryId/accommodations': typeof AuthenticatedPlannerItineraryIdAccommodationsIndexRoute
   '/trips': typeof AuthenticatedTripsIndexRoute
   '/community/$entryId/edit': typeof AuthenticatedCommunityEntryIdEditRoute
   '/trips/join/$inviteCode': typeof AuthenticatedTripsJoinInviteCodeRoute
@@ -155,6 +184,10 @@ export interface FileRoutesById {
   '/_authenticated/trips/new': typeof AuthenticatedTripsNewRoute
   '/_authenticated/community/': typeof AuthenticatedCommunityIndexRoute
   '/_authenticated/planner/': typeof AuthenticatedPlannerIndexRoute
+  '/_authenticated/community/$entryId_/edit': typeof AuthenticatedCommunityEntryIdEditRoute
+  '/_authenticated/planner/$itineraryId/': typeof AuthenticatedPlannerItineraryIdIndexRoute
+  '/_authenticated/planner/$itineraryId/accommodations/$accommodationId': typeof AuthenticatedPlannerItineraryIdAccommodationsAccommodationIdRoute
+  '/_authenticated/planner/$itineraryId/accommodations/': typeof AuthenticatedPlannerItineraryIdAccommodationsIndexRoute
   '/_authenticated/trips/': typeof AuthenticatedTripsIndexRoute
   '/_authenticated/community/$entryId_/edit': typeof AuthenticatedCommunityEntryIdEditRoute
   '/_authenticated/trips/join/$inviteCode': typeof AuthenticatedTripsJoinInviteCodeRoute
@@ -173,6 +206,10 @@ export interface FileRouteTypes {
     | '/trips/new'
     | '/community/'
     | '/planner/'
+    | '/community/$entryId/edit'
+    | '/planner/$itineraryId/'
+    | '/planner/$itineraryId/accommodations/$accommodationId'
+    | '/planner/$itineraryId/accommodations/'
     | '/trips/'
     | '/community/$entryId/edit'
     | '/trips/join/$inviteCode'
@@ -189,6 +226,10 @@ export interface FileRouteTypes {
     | '/trips/new'
     | '/community'
     | '/planner'
+    | '/community/$entryId/edit'
+    | '/planner/$itineraryId'
+    | '/planner/$itineraryId/accommodations/$accommodationId'
+    | '/planner/$itineraryId/accommodations'
     | '/trips'
     | '/community/$entryId/edit'
     | '/trips/join/$inviteCode'
@@ -206,6 +247,10 @@ export interface FileRouteTypes {
     | '/_authenticated/trips/new'
     | '/_authenticated/community/'
     | '/_authenticated/planner/'
+    | '/_authenticated/community/$entryId_/edit'
+    | '/_authenticated/planner/$itineraryId/'
+    | '/_authenticated/planner/$itineraryId/accommodations/$accommodationId'
+    | '/_authenticated/planner/$itineraryId/accommodations/'
     | '/_authenticated/trips/'
     | '/_authenticated/community/$entryId_/edit'
     | '/_authenticated/trips/join/$inviteCode'
@@ -311,6 +356,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCommunityEntryIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/planner/$itineraryId/': {
+      id: '/_authenticated/planner/$itineraryId/'
+      path: '/planner/$itineraryId'
+      fullPath: '/planner/$itineraryId/'
+      preLoaderRoute: typeof AuthenticatedPlannerItineraryIdIndexRouteImport
     '/_authenticated/trips/join/$inviteCode': {
       id: '/_authenticated/trips/join/$inviteCode'
       path: '/trips/join/$inviteCode'
@@ -325,6 +375,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCommunityEntryIdEditRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/planner/$itineraryId/accommodations/': {
+      id: '/_authenticated/planner/$itineraryId/accommodations/'
+      path: '/planner/$itineraryId/accommodations'
+      fullPath: '/planner/$itineraryId/accommodations/'
+      preLoaderRoute: typeof AuthenticatedPlannerItineraryIdAccommodationsIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/planner/$itineraryId/accommodations/$accommodationId': {
+      id: '/_authenticated/planner/$itineraryId/accommodations/$accommodationId'
+      path: '/planner/$itineraryId/accommodations/$accommodationId'
+      fullPath: '/planner/$itineraryId/accommodations/$accommodationId'
+      preLoaderRoute: typeof AuthenticatedPlannerItineraryIdAccommodationsAccommodationIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
@@ -337,6 +401,10 @@ interface AuthenticatedRouteChildren {
   AuthenticatedTripsNewRoute: typeof AuthenticatedTripsNewRoute
   AuthenticatedCommunityIndexRoute: typeof AuthenticatedCommunityIndexRoute
   AuthenticatedPlannerIndexRoute: typeof AuthenticatedPlannerIndexRoute
+  AuthenticatedCommunityEntryIdEditRoute: typeof AuthenticatedCommunityEntryIdEditRoute
+  AuthenticatedPlannerItineraryIdIndexRoute: typeof AuthenticatedPlannerItineraryIdIndexRoute
+  AuthenticatedPlannerItineraryIdAccommodationsAccommodationIdRoute: typeof AuthenticatedPlannerItineraryIdAccommodationsAccommodationIdRoute
+  AuthenticatedPlannerItineraryIdAccommodationsIndexRoute: typeof AuthenticatedPlannerItineraryIdAccommodationsIndexRoute
   AuthenticatedTripsIndexRoute: typeof AuthenticatedTripsIndexRoute
   AuthenticatedCommunityEntryIdEditRoute: typeof AuthenticatedCommunityEntryIdEditRoute
   AuthenticatedTripsJoinInviteCodeRoute: typeof AuthenticatedTripsJoinInviteCodeRoute
@@ -351,6 +419,14 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedTripsNewRoute: AuthenticatedTripsNewRoute,
   AuthenticatedCommunityIndexRoute: AuthenticatedCommunityIndexRoute,
   AuthenticatedPlannerIndexRoute: AuthenticatedPlannerIndexRoute,
+  AuthenticatedCommunityEntryIdEditRoute:
+    AuthenticatedCommunityEntryIdEditRoute,
+  AuthenticatedPlannerItineraryIdIndexRoute:
+    AuthenticatedPlannerItineraryIdIndexRoute,
+  AuthenticatedPlannerItineraryIdAccommodationsAccommodationIdRoute:
+    AuthenticatedPlannerItineraryIdAccommodationsAccommodationIdRoute,
+  AuthenticatedPlannerItineraryIdAccommodationsIndexRoute:
+    AuthenticatedPlannerItineraryIdAccommodationsIndexRoute,
   AuthenticatedTripsIndexRoute: AuthenticatedTripsIndexRoute,
   AuthenticatedCommunityEntryIdEditRoute:
     AuthenticatedCommunityEntryIdEditRoute,
