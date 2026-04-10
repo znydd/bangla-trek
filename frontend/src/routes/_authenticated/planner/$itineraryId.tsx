@@ -10,6 +10,7 @@ import {
   Clock,
   Wallet,
   Loader2,
+  BedDouble,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -77,10 +78,24 @@ function ItineraryViewPage() {
 
   return (
     <div className="container mx-auto py-8 px-4 space-y-8">
-      {/* Back button */}
-      <Button variant="ghost" size="sm" render={<Link to="/planner" />}>
-        <ArrowLeft className="mr-2 h-4 w-4" /> Back to Planner
-      </Button>
+      {/* Navigation */}
+      <div className="flex items-center justify-between">
+        <Button variant="ghost" size="sm" render={<Link to="/planner" />}>
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Planner
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          render={
+            <Link
+              to="/planner/$itineraryId/accommodations"
+              params={{ itineraryId }}
+            />
+          }
+        >
+          <BedDouble className="mr-2 h-4 w-4" /> Accommodations
+        </Button>
+      </div>
 
       {/* Header */}
       <div className="space-y-3">
