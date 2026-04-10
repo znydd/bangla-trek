@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User as UserIcon, LogOut, ChevronDown, Map, Compass } from "lucide-react";
+import { User as UserIcon, LogOut, ChevronDown, Map, Compass, UsersRound } from "lucide-react";
 
 export default function Navbar() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -34,6 +34,10 @@ export default function Navbar() {
             <Button variant="ghost" render={<Link to="/planner" activeProps={{ className: "text-foreground bg-muted" }} />} className="font-medium text-muted-foreground hover:text-foreground">
               <Compass size={16} className="mr-2" />
               AI Planner
+            </Button>
+            <Button variant="ghost" render={<Link to="/trips" activeProps={{ className: "text-foreground bg-muted" }} />} className="font-medium text-muted-foreground hover:text-foreground">
+              <UsersRound size={16} className="mr-2" />
+              Group Trips
             </Button>
           </div>
         </div>
@@ -76,6 +80,9 @@ export default function Navbar() {
                 </div>
                 <DropdownMenuItem render={<Link to="/community" className="w-full" />}>
                   Community Explore
+                </DropdownMenuItem>
+                <DropdownMenuItem render={<Link to="/trips" className="w-full" />}>
+                  Group Trips
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={logout} variant="destructive">
                   <LogOut size={16} className="mr-2" />
