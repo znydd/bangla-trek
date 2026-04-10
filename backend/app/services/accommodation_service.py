@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 # ── Gemini client ──
 
 client = genai.Client(api_key=settings.GEMINI_API_KEY)
-MODEL = "gemini-2.5-flash"
+MODEL = "gemini-3.1-flash-lite-preview"
 
 # Accommodation categories we filter on
 ACCOMMODATION_CATEGORIES = ("hotel", "guesthouse", "homestay")
