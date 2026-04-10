@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-export const Route = createFileRoute("/_authenticated/planner/$itineraryId")({
+export const Route = createFileRoute("/_authenticated/planner/$itineraryId/")({
   component: ItineraryViewPage,
 });
 
