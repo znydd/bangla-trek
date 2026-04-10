@@ -5,12 +5,11 @@ import uuid
 from typing import List, Optional, Tuple
 
 from google import genai
-from sqlalchemy import desc, func, select, or_
+from sqlalchemy import desc, func, select, or_, text
 from sqlalchemy.orm import Session, selectinload
 
 from app.config import settings
 from app.models.community_entry import CommunityEntry
-from app.models.entry_photo import EntryPhoto
 from app.models.itinerary import Itinerary, ItineraryActivity
 from app.models.user import User
 
@@ -99,13 +98,13 @@ class AccommodationService:
         elif sort_by == "price_asc":
             # Sort by price_range field (budget < mid_range < premium < luxury)
             price_order = func.array_position(
-                ["budget", "mid_range", "premium", "luxury"],
+                text("ARRAY['budget', 'mid_range', 'premium', 'luxury']"),
                 CommunityEntry.price_range,
             )
             query = query.order_by(price_order)
         elif sort_by == "price_desc":
             price_order = func.array_position(
-                ["budget", "mid_range", "premium", "luxury"],
+                text("ARRAY['budget', 'mid_range', 'premium', 'luxury']"),
                 CommunityEntry.price_range,
             )
             query = query.order_by(desc(price_order))
