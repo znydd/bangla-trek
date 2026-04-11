@@ -184,3 +184,82 @@ def delete_trip(
         raise HTTPException(status_code=404, detail=str(e))
     except PermissionError as e:
         raise HTTPException(status_code=403, detail=str(e))
+
+
+@router.get("/{trip_id}/itinerary")
+def get_trip_itinerary(
+    trip_id: uuid.UUID,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    service = GroupTripService(db)
+    from app.services.itinerary_service import ItineraryService
+    it_service = ItineraryService(db)
+    
+    if not service.is_member(trip_id, uuid.UUID(user_id)):
+        raise HTTPException(status_code=403, detail="Must be a member to view itinerary")
+        
+    # Find itinerary where group_trip_id == trip_id
+    from app.models.itinerary import Itinerary
+    from sqlalchemy.orm import selectinload
+    
+    itinerary = db.query(Itinerary).options(selectinload(Itinerary.activities)).filter(Itinerary.group_trip_id == trip_id).first()
+    if not itinerary:
+        # 404 because no collaborative itinerary created yet
+        raise HTTPException(status_code=404, detail="No collaborative itinerary exists for this trip")
+        
+    return itinerary
+
+
+@router.post("/{trip_id}/itinerary")
+def create_trip_itinerary(
+    trip_id: uuid.UUID,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Creates a blank collaborative itinerary for the trip"""
+    service = GroupTripService(db)
+    
+    if not service.is_member(trip_id, uuid.UUID(user_id)):
+        raise HTTPException(status_code=403, detail="Must be a member to create itinerary")
+        
+    from app.models.itinerary import Itinerary
+    from sqlalchemy.orm import selectinload
+    
+    existing = db.query(Itinerary).filter(Itinerary.group_trip_id == trip_id).first()
+    if existing:
+        return existing
+        
+    trip = service.get_trip(trip_id)
+        
+    itinerary = Itinerary(
+        user_id=uuid.UUID(user_id),  # creator
+        group_trip_id=trip_id,
+        destination=trip.destination,
+        duration_days=(trip.end_date - trip.start_date).days + 1,
+        budget=0.0,
+        travel_style="medium",
+        group_type=trip.visibility,
+    )
+    db.add(itinerary)
+    db.commit()
+    db.refresh(itinerary)
+    
+    # Notify other members
+    from app.models.notification import Notification
+    from app.models.group_trip import GroupTripMember
+    
+    members = db.query(GroupTripMember).filter(GroupTripMember.trip_id == trip_id).all()
+    for member in members:
+        if member.user_id != uuid.UUID(user_id):
+            notif = Notification(
+                user_id=member.user_id,
+                type="itinerary_created",
+                message=f"A collaborative itinerary was started for '{trip.title}'.",
+                resource_id=trip_id,
+                resource_type="trip"
+            )
+            db.add(notif)
+    db.commit()
+    
+    return db.query(Itinerary).options(selectinload(Itinerary.activities)).filter(Itinerary.id == itinerary.id).first()

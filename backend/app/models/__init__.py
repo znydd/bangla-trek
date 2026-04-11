@@ -5,9 +5,12 @@ from app.models.entry_video_embed import EntryVideoEmbed
 from app.models.itinerary import Itinerary, ItineraryActivity
 from app.models.nomad_metrics import NomadMetric
 from app.models.group_trip import GroupTrip, GroupTripMember
+from app.models.poll import Poll, PollOption, PollVote
+from app.models.notification import Notification
 
 __all__ = [
     "User", "CommunityEntry", "EntryPhoto", "EntryVideoEmbed",
     "Itinerary", "ItineraryActivity", "NomadMetric",
-    "GroupTrip", "GroupTripMember",
+    "GroupTrip", "GroupTripMember", "Poll", "PollOption",
+    "PollVote", "Notification",
 ]

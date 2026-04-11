@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { User as UserIcon, LogOut, ChevronDown, Map, Compass, UsersRound } from "lucide-react";
+import { NotificationsPopover } from "@/components/NotificationsPopover";
 
 export default function Navbar() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -46,7 +47,9 @@ export default function Navbar() {
           {isLoading ? (
             <div className="h-8 w-24 bg-muted animate-pulse rounded-lg" />
           ) : isAuthenticated && user ? (
-            <DropdownMenu>
+            <>
+              <NotificationsPopover />
+              <DropdownMenu>
               <DropdownMenuTrigger render={<Button variant="ghost" className="relative flex items-center gap-2 pr-1 h-10 rounded-full hover:bg-muted" />}>
                   <div className="h-7 w-7 rounded-full overflow-hidden border bg-muted shrink-0">
                     {user.picture_url ? (
@@ -58,9 +61,10 @@ export default function Navbar() {
                     )}
                   </div>
                   <span className="text-sm font-medium hidden sm:inline-block max-w-[100px] truncate">
-                    {user.name.split(' ')[0]}
+                    {user.name ? user.name.split(' ')[0] : 'User'}
                   </span>
                   <ChevronDown size={14} className="text-muted-foreground" />
+
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 mt-1">
                 <div className="flex items-center gap-2 p-2 px-3 border-b mb-1">
@@ -90,6 +94,7 @@ export default function Navbar() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            </>
           ) : (
             <Button onClick={loginWithGoogle} size="sm" className="rounded-full px-5">
               Login

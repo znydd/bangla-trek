@@ -110,3 +110,42 @@ async def logout():
     response.delete_cookie("access_token", path="/")
     response.delete_cookie("refresh_token", path="/api/v1/auth/refresh")
     return response
+
+@router.get("/mock-login")
+async def mock_login(db: Session = Depends(get_db)):
+    """Bypass OAuth for local testing. Creates/gets a mock user and sets cookies."""
+    user = db.query(User).filter(User.email == "test@example.com").first()
+    if not user:
+        user = User(
+            email="test@example.com",
+            name="Test User",
+            google_id="mock_google_id_123",
+            picture_url="https://ui.shadcn.com/avatars/01.png"
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    auth_service = AuthService(db)
+    access_token, refresh_token = auth_service.create_tokens(str(user.id))
+
+    response = RedirectResponse(url=f"{settings.FRONTEND_URL}/")
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=settings.IS_PRODUCTION,
+        samesite="lax",
+        max_age=30 * 60,
+        path="/",
+    )
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=settings.IS_PRODUCTION,
+        samesite="lax",
+        max_age=7 * 24 * 60 * 60,
+        path="/api/v1/auth/refresh",
+    )
+    return response

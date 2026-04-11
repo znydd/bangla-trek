@@ -40,6 +40,10 @@ import {
   Save,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { GroupPolls } from "@/components/trips/GroupPolls";
+import { CollaborativeItinerary } from "@/components/trips/CollaborativeItinerary";
+import { useMessagingAPI } from "@/hooks/useMessagingAPI";
 
 export const Route = createFileRoute("/_authenticated/trips/$tripId")({
   component: TripDetailPage,
@@ -47,6 +51,10 @@ export const Route = createFileRoute("/_authenticated/trips/$tripId")({
 
 function TripDetailPage() {
   const { tripId } = Route.useParams();
+  
+  // Initialize Real-time Messaging API Listener for Collaboration features
+  useMessagingAPI(tripId);
+
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -483,61 +491,78 @@ function TripDetailPage() {
         )}
       </Card>
 
-      {/* Members */}
-      <Card className="p-6 space-y-4">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
-          <Users size={18} />
-          Members ({trip.members.length})
-        </h2>
-        <MemberList members={trip.members} />
-      </Card>
+      <div className="mt-8">
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="itinerary">Itinerary</TabsTrigger>
+            <TabsTrigger value="polls">Polls & Voting</TabsTrigger>
+          </TabsList>
+          <TabsContent value="overview" className="mt-6 space-y-6">
+            <Card className="p-6 space-y-4">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <Users size={18} />
+                Members ({trip.members.length})
+              </h2>
+              <MemberList members={trip.members} />
+            </Card>
 
-      {/* Overlapping public trips at the same destination */}
-      {overlappingTrips && overlappingTrips.length > 0 && (
-        <Card className="p-6 space-y-4">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <UserSearch size={18} />
-            Other trips to {trip.destination}
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Public trips with overlapping dates at the same destination.
-          </p>
-          <div className="space-y-2">
-            {overlappingTrips.map((t) => (
-              <Link
-                key={t.id}
-                to="/trips/$tripId"
-                params={{ tripId: t.id }}
-                className="flex items-center justify-between gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors group"
-              >
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{t.title}</p>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
-                    <span className="flex items-center gap-1">
-                      <Calendar size={12} />
-                      {new Date(t.start_date).toLocaleDateString()} -{" "}
-                      {new Date(t.end_date).toLocaleDateString()}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Users size={12} />
-                      {t.member_count} member{t.member_count !== 1 ? "s" : ""}
-                    </span>
-                  </div>
-                  {t.creator_name && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      by {t.creator_name}
-                    </p>
-                  )}
+            {/* Overlapping public trips at the same destination */}
+            {overlappingTrips && overlappingTrips.length > 0 && (
+              <Card className="p-6 space-y-4">
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  <UserSearch size={18} />
+                  Other trips to {trip.destination}
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Public trips with overlapping dates at the same destination.
+                </p>
+                <div className="space-y-2">
+                  {overlappingTrips.map((t) => (
+                    <Link
+                      key={t.id}
+                      to="/trips/$tripId"
+                      params={{ tripId: t.id }}
+                      className="flex items-center justify-between gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors group"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{t.title}</p>
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                          <span className="flex items-center gap-1">
+                            <Calendar size={12} />
+                            {new Date(t.start_date).toLocaleDateString()} -{" "}
+                            {new Date(t.end_date).toLocaleDateString()}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Users size={12} />
+                            {t.member_count} member{t.member_count !== 1 ? "s" : ""}
+                          </span>
+                        </div>
+                        {t.creator_name && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            by {t.creator_name}
+                          </p>
+                        )}
+                      </div>
+                      <ArrowLeft
+                        size={14}
+                        className="shrink-0 text-muted-foreground group-hover:text-foreground transition-colors rotate-180"
+                      />
+                    </Link>
+                  ))}
                 </div>
-                <ArrowLeft
-                  size={14}
-                  className="shrink-0 text-muted-foreground group-hover:text-foreground transition-colors rotate-180"
-                />
-              </Link>
-            ))}
-          </div>
-        </Card>
-      )}
+              </Card>
+            )}
+          </TabsContent>
+          <TabsContent value="itinerary" className="mt-6">
+            <CollaborativeItinerary tripId={tripId} />
+          </TabsContent>
+          <TabsContent value="polls" className="mt-6">
+            <GroupPolls tripId={tripId} />
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
+
   );
 }

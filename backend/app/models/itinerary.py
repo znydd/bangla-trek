@@ -21,6 +21,9 @@ class Itinerary(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True
     )
+    group_trip_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("group_trips.id", ondelete="SET NULL"), nullable=True, index=True
+    )
 
     destination: Mapped[str] = mapped_column(String(255), nullable=False)
     duration_days: Mapped[int] = mapped_column(Integer, nullable=False)
