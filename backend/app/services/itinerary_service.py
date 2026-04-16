@@ -18,7 +18,7 @@ from app.schemas.itinerary import ItineraryGenerateRequest
 # ── Gemini client ──
 
 client = genai.Client(api_key=settings.GEMINI_API_KEY)
-MODEL = "gemini-3.1-flash-lite-preview"
+MODEL = "gemini-2.0-flash-lite"
 
 
 def _build_prompt(

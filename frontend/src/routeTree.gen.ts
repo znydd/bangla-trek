@@ -18,6 +18,7 @@ import { Route as AuthenticatedTripsIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedSocialMapIndexRouteImport } from './routes/_authenticated/social-map/index'
 import { Route as AuthenticatedPlannerIndexRouteImport } from './routes/_authenticated/planner/index'
 import { Route as AuthenticatedCommunityIndexRouteImport } from './routes/_authenticated/community/index'
+import { Route as AuthenticatedBuddyMatchingIndexRouteImport } from './routes/_authenticated/buddy-matching.index'
 import { Route as AuthenticatedTripsNewRouteImport } from './routes/_authenticated/trips/new'
 import { Route as AuthenticatedTripsTripIdRouteImport } from './routes/_authenticated/trips/$tripId'
 import { Route as AuthenticatedCommunityNewRouteImport } from './routes/_authenticated/community/new'
@@ -74,6 +75,12 @@ const AuthenticatedCommunityIndexRoute =
   AuthenticatedCommunityIndexRouteImport.update({
     id: '/community/',
     path: '/community/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedBuddyMatchingIndexRoute =
+  AuthenticatedBuddyMatchingIndexRouteImport.update({
+    id: '/buddy-matching/',
+    path: '/buddy-matching/',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedTripsNewRoute = AuthenticatedTripsNewRouteImport.update({
@@ -141,6 +148,7 @@ export interface FileRoutesByFullPath {
   '/community/new': typeof AuthenticatedCommunityNewRoute
   '/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
   '/trips/new': typeof AuthenticatedTripsNewRoute
+  '/buddy-matching/': typeof AuthenticatedBuddyMatchingIndexRoute
   '/community/': typeof AuthenticatedCommunityIndexRoute
   '/planner/': typeof AuthenticatedPlannerIndexRoute
   '/social-map/': typeof AuthenticatedSocialMapIndexRoute
@@ -160,6 +168,7 @@ export interface FileRoutesByTo {
   '/community/new': typeof AuthenticatedCommunityNewRoute
   '/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
   '/trips/new': typeof AuthenticatedTripsNewRoute
+  '/buddy-matching': typeof AuthenticatedBuddyMatchingIndexRoute
   '/community': typeof AuthenticatedCommunityIndexRoute
   '/planner': typeof AuthenticatedPlannerIndexRoute
   '/social-map': typeof AuthenticatedSocialMapIndexRoute
@@ -181,6 +190,7 @@ export interface FileRoutesById {
   '/_authenticated/community/new': typeof AuthenticatedCommunityNewRoute
   '/_authenticated/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
   '/_authenticated/trips/new': typeof AuthenticatedTripsNewRoute
+  '/_authenticated/buddy-matching/': typeof AuthenticatedBuddyMatchingIndexRoute
   '/_authenticated/community/': typeof AuthenticatedCommunityIndexRoute
   '/_authenticated/planner/': typeof AuthenticatedPlannerIndexRoute
   '/_authenticated/social-map/': typeof AuthenticatedSocialMapIndexRoute
@@ -202,6 +212,7 @@ export interface FileRouteTypes {
     | '/community/new'
     | '/trips/$tripId'
     | '/trips/new'
+    | '/buddy-matching/'
     | '/community/'
     | '/planner/'
     | '/social-map/'
@@ -221,6 +232,7 @@ export interface FileRouteTypes {
     | '/community/new'
     | '/trips/$tripId'
     | '/trips/new'
+    | '/buddy-matching'
     | '/community'
     | '/planner'
     | '/social-map'
@@ -241,6 +253,7 @@ export interface FileRouteTypes {
     | '/_authenticated/community/new'
     | '/_authenticated/trips/$tripId'
     | '/_authenticated/trips/new'
+    | '/_authenticated/buddy-matching/'
     | '/_authenticated/community/'
     | '/_authenticated/planner/'
     | '/_authenticated/social-map/'
@@ -324,6 +337,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCommunityIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/buddy-matching/': {
+      id: '/_authenticated/buddy-matching/'
+      path: '/buddy-matching'
+      fullPath: '/buddy-matching/'
+      preLoaderRoute: typeof AuthenticatedBuddyMatchingIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/trips/new': {
       id: '/_authenticated/trips/new'
       path: '/trips/new'
@@ -396,6 +416,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedCommunityNewRoute: typeof AuthenticatedCommunityNewRoute
   AuthenticatedTripsTripIdRoute: typeof AuthenticatedTripsTripIdRoute
   AuthenticatedTripsNewRoute: typeof AuthenticatedTripsNewRoute
+  AuthenticatedBuddyMatchingIndexRoute: typeof AuthenticatedBuddyMatchingIndexRoute
   AuthenticatedCommunityIndexRoute: typeof AuthenticatedCommunityIndexRoute
   AuthenticatedPlannerIndexRoute: typeof AuthenticatedPlannerIndexRoute
   AuthenticatedSocialMapIndexRoute: typeof AuthenticatedSocialMapIndexRoute
@@ -413,6 +434,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCommunityNewRoute: AuthenticatedCommunityNewRoute,
   AuthenticatedTripsTripIdRoute: AuthenticatedTripsTripIdRoute,
   AuthenticatedTripsNewRoute: AuthenticatedTripsNewRoute,
+  AuthenticatedBuddyMatchingIndexRoute: AuthenticatedBuddyMatchingIndexRoute,
   AuthenticatedCommunityIndexRoute: AuthenticatedCommunityIndexRoute,
   AuthenticatedPlannerIndexRoute: AuthenticatedPlannerIndexRoute,
   AuthenticatedSocialMapIndexRoute: AuthenticatedSocialMapIndexRoute,
