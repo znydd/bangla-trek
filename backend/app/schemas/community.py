@@ -74,6 +74,21 @@ class CommunityEntryRead(CommunityEntryBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class CommunityMapPoint(BaseModel):
+    id: uuid.UUID
+    user_id: uuid.UUID
+    name: str
+    location: str
+    latitude: float
+    longitude: float
+    category: str
+    tags: List[str] = []
+    author_name: str
+    author_picture_url: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class PaginatedResponse(BaseModel):
     total: int
     page: int

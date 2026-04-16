@@ -34,8 +34,13 @@ class Settings(BaseSettings):
     # Gemini LLM
     GEMINI_API_KEY: str
 
+    #BariKoi
+    BARIKOI_API_KEY: str
+
     # Environment
     IS_PRODUCTION: bool = False
 
 
 settings = Settings()
+
+
