@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User as UserIcon, LogOut, ChevronDown, Map, Compass, UsersRound } from "lucide-react";
+import { User as UserIcon, LogOut, ChevronDown, Map, Compass, UsersRound, ShieldAlert } from "lucide-react";
 
 export default function Navbar() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -38,6 +38,10 @@ export default function Navbar() {
             <Button variant="ghost" render={<Link to="/trips" activeProps={{ className: "text-foreground bg-muted" }} />} className="font-medium text-muted-foreground hover:text-foreground">
               <UsersRound size={16} className="mr-2" />
               Group Trips
+            </Button>
+            <Button variant="ghost" render={<Link to="/emergency" activeProps={{ className: "text-foreground bg-muted" }} />} className="font-medium text-muted-foreground hover:text-foreground">
+              <ShieldAlert size={16} className="mr-2" />
+              Emergency
             </Button>
           </div>
         </div>
@@ -83,6 +87,9 @@ export default function Navbar() {
                 </DropdownMenuItem>
                 <DropdownMenuItem render={<Link to="/trips" className="w-full" />}>
                   Group Trips
+                </DropdownMenuItem>
+                <DropdownMenuItem render={<Link to="/emergency" className="w-full" />}>
+                  Emergency Hub
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={logout} variant="destructive">
                   <LogOut size={16} className="mr-2" />
