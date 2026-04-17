@@ -8,6 +8,7 @@ import {
   Footprints,
   User,
 } from "lucide-react";
+import { FareEstimateChips } from "@/components/transit-fares/FareEstimateChips";
 
 interface BlueprintCardProps {
   blueprint: TransitBlueprintListItem;
@@ -58,6 +59,11 @@ export function BlueprintCard({ blueprint }: BlueprintCardProps) {
               </span>
             </div>
           </div>
+
+          <FareEstimateChips
+            origin={blueprint.origin}
+            destination={blueprint.destination}
+          />
         </CardContent>
 
         <CardFooter className="p-4 pt-0 text-xs text-muted-foreground flex justify-between items-center">

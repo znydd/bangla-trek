@@ -11,6 +11,7 @@ import {
   FileText,
   StickyNote,
 } from "lucide-react";
+import { FareInsightsSection } from "@/components/transit-fares/FareInsightsSection";
 
 interface BlueprintDetailProps {
   blueprint: TransitBlueprint;
@@ -115,6 +116,11 @@ export function BlueprintDetail({ blueprint }: BlueprintDetailProps) {
           )}
         </div>
       </div>
+
+      <FareInsightsSection
+        origin={blueprint.origin}
+        destination={blueprint.destination}
+      />
     </div>
   );
 }
