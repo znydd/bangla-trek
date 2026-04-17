@@ -5,9 +5,11 @@ from app.models.entry_video_embed import EntryVideoEmbed
 from app.models.itinerary import Itinerary, ItineraryActivity
 from app.models.nomad_metrics import NomadMetric
 from app.models.group_trip import GroupTrip, GroupTripMember
+from app.models.emergency_facility import EmergencyFacility
 
 __all__ = [
     "User", "CommunityEntry", "EntryPhoto", "EntryVideoEmbed",
     "Itinerary", "ItineraryActivity", "NomadMetric",
     "GroupTrip", "GroupTripMember",
+    "EmergencyFacility",
 ]
