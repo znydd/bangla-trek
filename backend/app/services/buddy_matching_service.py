@@ -105,6 +105,23 @@ class BuddyMatchingService:
         # Filter by minimum score
         all_matches = [m for m in all_matches if m.match_score >= filters.min_match_score]
 
+        # Hide already connected/requested users from discover results.
+        # Keeps discover focused on fresh candidates.
+        active_match_status_by_user: dict[uuid.UUID, str] = {
+            matched_user_id: status
+            for matched_user_id, status in self.db.execute(
+                select(BuddyMatch.matched_user_id, BuddyMatch.status).where(
+                    BuddyMatch.user_id == user_id
+                )
+            ).all()
+        }
+        all_matches = [
+            m
+            for m in all_matches
+            if active_match_status_by_user.get(m.matched_user_id)
+            not in {"pending", "accepted", "blocked"}
+        ]
+
         # Limit results
         return all_matches[: filters.limit]
 

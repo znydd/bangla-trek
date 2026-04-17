@@ -35,6 +35,10 @@ export default function Navbar() {
               <Map size={16} className="mr-2" />
               Social Map
             </Button>
+            <Button variant="ghost" render={<Link to="/buddy-matching" activeProps={{ className: "text-foreground bg-muted" }} />} className="font-medium text-muted-foreground hover:text-foreground">
+              <UsersRound size={16} className="mr-2" />
+              Buddy Matching
+            </Button>
             <Button variant="ghost" render={<Link to="/planner" activeProps={{ className: "text-foreground bg-muted" }} />} className="font-medium text-muted-foreground hover:text-foreground">
               <Compass size={16} className="mr-2" />
               AI Planner
@@ -96,6 +100,9 @@ export default function Navbar() {
                 </DropdownMenuItem>
                 <DropdownMenuItem render={<Link to="/social-map" className="w-full" />}>
                   Social Map
+                </DropdownMenuItem>
+                <DropdownMenuItem render={<Link to="/buddy-matching" className="w-full" />}>
+                  Buddy Matching
                 </DropdownMenuItem>
                 <DropdownMenuItem render={<Link to="/trips" className="w-full" />}>
                   Group Trips
