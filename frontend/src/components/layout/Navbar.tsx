@@ -43,9 +43,11 @@ export default function Navbar() {
               <UsersRound size={16} className="mr-2" />
               Group Trips
             </Button>
-            <Button variant="ghost" render={<Link to="/emergency" activeProps={{ className: "text-foreground bg-muted" }} />} className="font-medium text-muted-foreground hover:text-foreground">
+            <Button variant="ghost"
+              render={<Link to="/emergency" activeProps={{ className: "text-foreground bg-muted" }} />} className="font-medium text-muted-foreground hover:text-foreground">
               <ShieldAlert size={16} className="mr-2" />
               Emergency
+            </Button>
             <Button variant="ghost" render={<Link to="/transit-blueprints" activeProps={{ className: "text-foreground bg-muted" }} />} className="font-medium text-muted-foreground hover:text-foreground">
               <Footprints size={16} className="mr-2" />
               Transit Blueprints
@@ -59,19 +61,19 @@ export default function Navbar() {
           ) : isAuthenticated && user ? (
             <DropdownMenu>
               <DropdownMenuTrigger render={<Button variant="ghost" className="relative flex items-center gap-2 pr-1 h-10 rounded-full hover:bg-muted" />}>
-                  <div className="h-7 w-7 rounded-full overflow-hidden border bg-muted shrink-0">
-                    {user.picture_url ? (
-                      <img src={user.picture_url} alt={user.name} className="h-full w-full object-cover" />
-                    ) : (
-                      <div className="h-full w-full flex items-center justify-center bg-primary/10 text-primary">
-                        <UserIcon size={14} />
-                      </div>
-                    )}
-                  </div>
-                  <span className="text-sm font-medium hidden sm:inline-block max-w-[100px] truncate">
-                    {user.name.split(' ')[0]}
-                  </span>
-                  <ChevronDown size={14} className="text-muted-foreground" />
+                <div className="h-7 w-7 rounded-full overflow-hidden border bg-muted shrink-0">
+                  {user.picture_url ? (
+                    <img src={user.picture_url} alt={user.name} className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="h-full w-full flex items-center justify-center bg-primary/10 text-primary">
+                      <UserIcon size={14} />
+                    </div>
+                  )}
+                </div>
+                <span className="text-sm font-medium hidden sm:inline-block max-w-[100px] truncate">
+                  {user.name.split(' ')[0]}
+                </span>
+                <ChevronDown size={14} className="text-muted-foreground" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 mt-1">
                 <div className="flex items-center gap-2 p-2 px-3 border-b mb-1">
@@ -100,6 +102,7 @@ export default function Navbar() {
                 </DropdownMenuItem>
                 <DropdownMenuItem render={<Link to="/emergency" className="w-full" />}>
                   Emergency Hub
+                </DropdownMenuItem>
                 <DropdownMenuItem render={<Link to="/transit-blueprints" className="w-full" />}>
                   Transit Blueprints
                 </DropdownMenuItem>
