@@ -3,6 +3,7 @@ import api from "@/lib/api";
 import type {
   EmergencyFacilityListResponse,
   EmergencyFacility,
+  EmergencyFacilityCreate,
   EmergencyPhraseCategory,
   FacilitySearchParams,
   TranslatePayload,
@@ -66,5 +67,15 @@ export const emergencyPhrasesQueryOptions = () =>
 
 export const translatePhrase = async (payload: TranslatePayload) => {
   const res = await api.post<TranslateResponse>(`${BASE}/translate`, payload);
+  return res.data;
+};
+
+export const createFacility = async (payload: EmergencyFacilityCreate) => {
+  const res = await api.post<EmergencyFacility>(`${BASE}/facilities`, payload);
+  return res.data;
+};
+
+export const deleteFacility = async (facilityId: string) => {
+  const res = await api.delete(`${BASE}/facilities/${facilityId}`);
   return res.data;
 };

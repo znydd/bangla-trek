@@ -18,6 +18,17 @@ export interface EmergencyFacilityListResponse {
   total: number;
 }
 
+export interface EmergencyFacilityCreate {
+  name: string;
+  facility_type: FacilityType;
+  address: string;
+  district: string;
+  latitude: number;
+  longitude: number;
+  phone_number?: string | null;
+  notes?: string | null;
+}
+
 export interface FacilitySearchParams {
   facility_type?: FacilityType;
   district?: string;
