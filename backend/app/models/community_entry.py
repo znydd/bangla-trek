@@ -11,6 +11,7 @@ from app.db.base import Base
 if TYPE_CHECKING:
     from .user import User
     from .entry_photo import EntryPhoto
+    from .entry_review import EntryReview
     from .entry_video_embed import EntryVideoEmbed
 
 
@@ -49,4 +50,7 @@ class CommunityEntry(Base):
     )
     video_embeds: Mapped[List["EntryVideoEmbed"]] = relationship(
         "EntryVideoEmbed", back_populates="entry", cascade="all, delete-orphan"
+    )
+    reviews: Mapped[List["EntryReview"]] = relationship(
+        "EntryReview", back_populates="entry", cascade="all, delete-orphan"
     )

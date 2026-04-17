@@ -7,6 +7,7 @@ from app.api.v1.nomad_metrics import router as nomad_metrics_router
 from app.api.v1.accommodations import router as accommodations_router
 from app.api.v1.group_trips import router as group_trips_router
 from app.api.v1.emergency import router as emergency_router
+from app.api.v1.reviews import router as reviews_router
 from app.api.v1.transit_blueprints import router as transit_blueprints_router
 from app.api.v1.user_locations import router as user_locations_router
 from app.api.v1.buddy_matching import router as buddy_matching_router
@@ -20,6 +21,7 @@ router.include_router(nomad_metrics_router)
 router.include_router(accommodations_router)
 router.include_router(group_trips_router)
 router.include_router(emergency_router)
+router.include_router(reviews_router)
 
 router.include_router(transit_blueprints_router)
 
