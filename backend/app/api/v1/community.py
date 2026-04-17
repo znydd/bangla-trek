@@ -9,6 +9,7 @@ from app.db.session import get_db
 from app.schemas.community import (
     CommunityEntryCreate,
     CommunityEntryList,
+    CommunityMapPoint,
     CommunityEntryRead,
     CommunityEntryUpdate,
 )
@@ -47,6 +48,23 @@ def list_entries(
         "per_page": per_page,
         "total_pages": total_pages,
     }
+
+
+@router.get("/map", response_model=List[CommunityMapPoint])
+def list_map_points(
+    category: Optional[str] = None,
+    tag: Optional[str] = None,
+    search: Optional[str] = None,
+    limit: int = Query(1000, ge=1, le=5000),
+    db: Session = Depends(get_db),
+):
+    service = CommunityService(db)
+    return service.list_map_points(
+        category=category,
+        tag=tag,
+        search=search,
+        limit=limit,
+    )
 
 
 @router.get("/{entry_id}", response_model=CommunityEntryRead)
