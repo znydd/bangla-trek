@@ -47,6 +47,9 @@ export function EntryForm({ mode, defaultValues, onSubmit, isLoading }: EntryFor
   const [selectedPhotos, setSelectedPhotos] = useState<File[]>([]);
   const [deletedPhotoIds, setDeletedPhotoIds] = useState<string[]>([]);
   const [amenityInput, setAmenityInput] = useState("");
+  const [isResolvingLocation, setIsResolvingLocation] = useState(false);
+
+  const mapTilerKey = import.meta.env.VITE_MAPTILER_KEY as string | undefined;
 
   const handleAmenityKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && amenityInput.trim()) {
@@ -77,7 +80,38 @@ export function EntryForm({ mode, defaultValues, onSubmit, isLoading }: EntryFor
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onSubmit(formData, selectedPhotos, deletedPhotoIds);
+    let payload: CreateEntryPayload = { ...formData };
+
+    // If coordinates are missing, try to resolve from location text.
+    if (
+      mapTilerKey &&
+      formData.location.trim().length >= 3 &&
+      (payload.latitude == null || payload.longitude == null)
+    ) {
+      setIsResolvingLocation(true);
+      try {
+        const url = new URL(
+          `https://api.maptiler.com/geocoding/${encodeURIComponent(formData.location.trim())}.json`,
+        );
+        url.searchParams.set("key", mapTilerKey);
+        url.searchParams.set("country", "bd");
+        url.searchParams.set("limit", "1");
+        const res = await fetch(url.toString());
+        const data = (await res.json()) as { features?: Array<{ center?: [number, number] }> };
+        const first = data.features?.[0];
+        const lng = Number(first?.center?.[0]);
+        const lat = Number(first?.center?.[1]);
+        if (Number.isFinite(lat) && Number.isFinite(lng)) {
+          payload = { ...payload, latitude: lat, longitude: lng };
+        }
+      } catch {
+        // Silent fallback: keep submitting location text even when geocoding fails.
+      } finally {
+        setIsResolvingLocation(false);
+      }
+    }
+
+    await onSubmit(payload, selectedPhotos, deletedPhotoIds);
   };
 
   const categories: EntryCategory[] = ["attraction", "hotel", "guesthouse", "homestay", "restaurant"];
@@ -238,11 +272,16 @@ export function EntryForm({ mode, defaultValues, onSubmit, isLoading }: EntryFor
         >
           Cancel
         </Button>
-        <Button type="submit" size="lg" className="px-10" disabled={isLoading}>
-          {isLoading ? (
+        <Button
+          type="submit"
+          size="lg"
+          className="px-10"
+          disabled={isLoading || isResolvingLocation}
+        >
+          {isLoading || isResolvingLocation ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Saving...
+              {isResolvingLocation ? "Resolving location..." : "Saving..."}
             </>
           ) : (
             mode === "create" ? "Create Entry" : "Save Changes"
