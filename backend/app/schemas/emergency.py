@@ -28,6 +28,17 @@ class EmergencyFacilityListResponse(BaseModel):
     total: int
 
 
+class EmergencyFacilityCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=255)
+    facility_type: str = Field(..., pattern="^(hospital|police_station|tourist_police)$")
+    address: str = Field(..., min_length=1)
+    district: str = Field(..., min_length=1, max_length=100)
+    latitude: float = Field(..., ge=-90, le=90)
+    longitude: float = Field(..., ge=-180, le=180)
+    phone_number: Optional[str] = Field(None, max_length=50)
+    notes: Optional[str] = None
+
+
 # ── Phrase schemas ──
 
 

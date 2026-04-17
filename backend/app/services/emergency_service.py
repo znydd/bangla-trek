@@ -148,6 +148,23 @@ class EmergencyService:
         """Return all pre-saved emergency phrases."""
         return EMERGENCY_PHRASES
 
+    def create_facility(self, data: dict) -> EmergencyFacility:
+        """Create a new emergency facility contributed by a user."""
+        facility = EmergencyFacility(**data)
+        self.db.add(facility)
+        self.db.commit()
+        self.db.refresh(facility)
+        return facility
+
+    def delete_facility(self, facility_id: str, user_id: str) -> bool:
+        """Delete a facility by ID."""
+        facility = self.db.get(EmergencyFacility, facility_id)
+        if not facility:
+            return False
+        self.db.delete(facility)
+        self.db.commit()
+        return True
+
     def translate_phrase(self, text: str, dialect: Optional[str] = None) -> dict:
         """Call Gemini to translate a custom phrase into Bengali + optional dialect."""
         prompt = _build_translate_prompt(text, dialect)

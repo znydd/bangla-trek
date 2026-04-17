@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user_id
 from app.db.session import get_db
 from app.schemas.emergency import (
+    EmergencyFacilityCreate,
     EmergencyFacilityListResponse,
     EmergencyFacilityRead,
     EmergencyPhraseCategoryRead,
@@ -78,3 +79,27 @@ def translate_phrase(
         return service.translate_phrase(payload.text, payload.dialect)
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
+
+
+@router.post("/facilities", response_model=EmergencyFacilityRead)
+def create_facility(
+    payload: EmergencyFacilityCreate,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Add a new emergency facility (community contribution)."""
+    service = EmergencyService(db)
+    return service.create_facility(payload.model_dump())
+
+
+@router.delete("/facilities/{facility_id}")
+def delete_facility(
+    facility_id: str,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Delete an emergency facility."""
+    service = EmergencyService(db)
+    if not service.delete_facility(facility_id, user_id):
+        raise HTTPException(status_code=404, detail="Facility not found")
+    return {"detail": "Deleted"}
