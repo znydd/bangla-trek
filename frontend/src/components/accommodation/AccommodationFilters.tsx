@@ -35,23 +35,24 @@ export function AccommodationFilters({ filters, onChange }: AccommodationFilters
     onChange({ ...filters, search: e.target.value, page: 1 });
   };
 
-  const handleTypeChange = (value: string) => {
+  const handleTypeChange = (value: string | null) => {
     onChange({
       ...filters,
-      accommodation_type: value === "all" ? undefined : (value as AccommodationType),
+      accommodation_type: value === "all" || !value ? undefined : (value as AccommodationType),
       page: 1,
     });
   };
 
-  const handlePriceChange = (value: string) => {
+  const handlePriceChange = (value: string | null) => {
     onChange({
       ...filters,
-      price_range: value === "all" ? undefined : value,
+      price_range: value === "all" || !value ? undefined : value,
       page: 1,
     });
   };
 
-  const handleSortChange = (value: string) => {
+  const handleSortChange = (value: string | null) => {
+    if (!value) return;
     onChange({
       ...filters,
       sort_by: value as AccommodationSearchParams["sort_by"],

@@ -19,14 +19,27 @@ export const userItinerariesQueryOptions = () =>
     },
   });
 
-export const itineraryQueryOptions = (itineraryId: string) =>
-  queryOptions<Itinerary>({
-    queryKey: ["itineraries", itineraryId],
+export const itineraryQueryOptions = (id: string) =>
+  queryOptions({
+    queryKey: ["itineraries", id],
     queryFn: async () => {
-      const res = await api.get<Itinerary>(`${BASE}/${itineraryId}`);
-      return res.data;
+      const response = await api.get<Itinerary>(`/itinerary/${id}`);
+      return response.data;
     },
   });
+
+export const exportItineraryPdf = async (id: string) => {
+  const response = await api.get(`/export/itinerary/${id}/pdf`, {
+    responseType: "blob",
+  });
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", `itinerary-${id.slice(0, 8)}.pdf`);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+};
 
 // --- Mutations ---
 

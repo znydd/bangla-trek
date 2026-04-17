@@ -7,6 +7,8 @@ from sqlalchemy.orm import Session, selectinload
 from app.models.group_trip import GroupTrip, GroupTripMember
 from app.models.user import User
 from app.schemas.group_trip import GroupTripCreate, GroupTripUpdate
+from app.services.group_collaboration_service import CollaborationService
+from app.services.messaging_service import MessagingService
 
 
 class GroupTripService:
@@ -33,6 +35,17 @@ class GroupTripService:
             role="owner",
         )
         self.db.add(member)
+        
+        # Log activity
+        collab_service = CollaborationService(self.db)
+        collab_service.log_activity(
+            trip.id,
+            user_id,
+            "trip_created",
+            "created the group trip",
+            {"title": trip.title}
+        )
+        
         self.db.commit()
         self.db.refresh(trip)
         return trip
@@ -173,6 +186,27 @@ class GroupTripService:
             role="member",
         )
         self.db.add(member)
+        
+        # Log activity
+        collab_service = CollaborationService(self.db)
+        collab_service.log_activity(
+            trip.id,
+            user_id,
+            "join",
+            "joined the group trip"
+        )
+        
+        # Send Notification to owner
+        user = self.db.query(User).filter(User.id == user_id).first()
+        if user:
+            messaging_service = MessagingService(self.db)
+            messaging_service.notify_group_join(
+                target_user_id=trip.creator_id,
+                trip_id=trip.id,
+                trip_title=trip.title,
+                joiner_name=user.name
+            )
+        
         self.db.commit()
         self.db.refresh(trip)
         return trip

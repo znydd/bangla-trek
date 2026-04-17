@@ -110,9 +110,11 @@ export function FacilityForm() {
                 <label className="text-sm font-medium">Facility Type *</label>
                 <Select
                   value={facilityType}
-                  onValueChange={(val: FacilityType) =>
-                    setValue("facility_type", val)
-                  }
+                  onValueChange={(val: string | null) => {
+                    if (val) {
+                      setValue("facility_type", val as FacilityType);
+                    }
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select type" />

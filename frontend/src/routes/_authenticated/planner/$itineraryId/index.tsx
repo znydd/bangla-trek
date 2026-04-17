@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { itineraryQueryOptions } from "@/services/itinerary.service";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,8 @@ import {
   BedDouble,
 } from "lucide-react";
 import { useState } from "react";
+import ChatPanel from "@/components/chat/ChatPanel";
+import SeasonalWarnings from "@/components/chat/SeasonalWarnings";
 
 export const Route = createFileRoute("/_authenticated/planner/$itineraryId/")({
   component: ItineraryViewPage,
@@ -40,10 +42,15 @@ const CATEGORY_EMOJI: Record<string, string> = {
 
 function ItineraryViewPage() {
   const { itineraryId } = Route.useParams();
+  const queryClient = useQueryClient();
   const { data: itinerary, isLoading } = useQuery(
     itineraryQueryOptions(itineraryId)
   );
   const [activeDay, setActiveDay] = useState(1);
+
+  const handleItineraryUpdated = () => {
+    queryClient.invalidateQueries({ queryKey: ["itineraries", itineraryId] });
+  };
 
   if (isLoading) {
     return (
@@ -130,6 +137,9 @@ function ItineraryViewPage() {
           </div>
         )}
       </div>
+
+      {/* Seasonal Intelligence — Member-4 Feature 1 */}
+      <SeasonalWarnings destination={itinerary.destination} />
 
       {/* Day Tabs */}
       <div className="flex gap-2 overflow-x-auto pb-2">
@@ -227,6 +237,13 @@ function ItineraryViewPage() {
           </div>
         </div>
       </Card>
+
+      {/* AI Chat Panel — Member-4 Feature 1 */}
+      <ChatPanel
+        itineraryId={itineraryId}
+        destination={itinerary.destination}
+        onItineraryUpdated={handleItineraryUpdated}
+      />
     </div>
   );
 }

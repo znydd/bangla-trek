@@ -10,6 +10,11 @@ from app.api.v1.emergency import router as emergency_router
 from app.api.v1.transit_blueprints import router as transit_blueprints_router
 from app.api.v1.user_locations import router as user_locations_router
 from app.api.v1.buddy_matching import router as buddy_matching_router
+from app.api.v1.chat import router as chat_router
+from app.api.v1.group_collaboration import router as group_collaboration_router
+from app.api.v1.notifications import router as notifications_router
+from app.api.v1.export import router as export_router
+from app.api.v1.reminders import router as reminders_router
 
 router = APIRouter(prefix="/api/v1")
 
@@ -25,3 +30,8 @@ router.include_router(transit_blueprints_router)
 
 router.include_router(user_locations_router)
 router.include_router(buddy_matching_router)
+router.include_router(chat_router)
+router.include_router(group_collaboration_router)
+router.include_router(notifications_router)
+router.include_router(export_router)
+router.include_router(reminders_router)

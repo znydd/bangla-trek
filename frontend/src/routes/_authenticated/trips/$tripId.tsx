@@ -40,6 +40,14 @@ import {
   Save,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import GroupActivityFeed from "@/components/group/GroupActivityFeed";
+import GroupPolls from "@/components/group/GroupPolls";
+import SharedItineraryView from "@/components/group/SharedItineraryView";
+import { userItinerariesQueryOptions } from "@/services/itinerary.service";
+import { linkItinerary } from "@/services/group-collaboration.service";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Info } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/trips/$tripId")({
   component: TripDetailPage,
@@ -64,6 +72,9 @@ function TripDetailPage() {
   const { data: trip, isLoading, error } = useQuery(
     groupTripDetailQueryOptions(tripId)
   );
+
+  const isOwner = user?.id === trip?.creator_id;
+  const isMember = trip?.members.some((m) => m.user_id === user?.id);
 
   // Discover overlapping public trips at the same destination/dates
   const { data: overlappingTrips } = useQuery({
@@ -158,6 +169,21 @@ function TripDetailPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const { data: myItineraries = [] } = useQuery({
+    ...userItinerariesQueryOptions(),
+    enabled: isOwner,
+  });
+
+  const linkItineraryMutation = useMutation({
+    mutationFn: (itineraryId: string) => linkItinerary(tripId, itineraryId),
+    onSuccess: () => {
+      toast.success("Itinerary linked to trip!");
+      queryClient.invalidateQueries({ queryKey: ["group-trips", tripId] });
+      queryClient.invalidateQueries({ queryKey: ["group-activity", tripId] });
+    },
+    onError: () => toast.error("Failed to link itinerary."),
+  });
+
   if (isLoading) {
     return (
       <div className="container mx-auto py-8 px-4 space-y-6 max-w-3xl">
@@ -183,8 +209,6 @@ function TripDetailPage() {
     );
   }
 
-  const isOwner = user?.id === trip.creator_id;
-  const isMember = trip.members.some((m) => m.user_id === user?.id);
 
   const startDate = new Date(trip.start_date).toLocaleDateString("en-GB", {
     weekday: "short",
@@ -207,337 +231,441 @@ function TripDetailPage() {
         All Trips
       </Button>
 
-      {/* Trip header */}
-      <Card className="p-6 space-y-4">
-        <div className="h-2 -mt-6 -mx-6 mb-4 bg-gradient-to-r from-green-500 to-emerald-400 rounded-t-xl" />
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="itinerary">Itinerary</TabsTrigger>
+          <TabsTrigger value="polls">Polls</TabsTrigger>
+          <TabsTrigger value="feed">Feed</TabsTrigger>
+        </TabsList>
 
-        {editing ? (
-          <form onSubmit={handleEditSubmit} className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Edit Trip</h2>
+        {/* --- OVERVIEW TAB --- */}
+        <TabsContent value="overview" className="space-y-6 pt-4">
+          {/* Trip header */}
+          <Card className="p-6 space-y-4">
+            <div className="h-2 -mt-6 -mx-6 mb-4 bg-gradient-to-r from-green-500 to-emerald-400 rounded-t-xl" />
+
+            {editing ? (
+              <form onSubmit={handleEditSubmit} className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold">Edit Trip</h2>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setEditing(false)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit-title">Title</Label>
+                  <Input
+                    id="edit-title"
+                    value={editForm.title}
+                    onChange={(e) =>
+                      setEditForm((f) => ({ ...f, title: e.target.value }))
+                    }
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="edit-destination"
+                    className="flex items-center gap-2"
+                  >
+                    <MapPin className="h-4 w-4" /> Destination
+                  </Label>
+                  <DestinationCombobox
+                    id="edit-destination"
+                    value={editForm.destination}
+                    onChange={(val) =>
+                      setEditForm((f) => ({ ...f, destination: val }))
+                    }
+                    placeholder="Search Bangladesh destinations..."
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit-description">Description</Label>
+                  <Textarea
+                    id="edit-description"
+                    value={editForm.description}
+                    onChange={(e) =>
+                      setEditForm((f) => ({ ...f, description: e.target.value }))
+                    }
+                    rows={3}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-start" className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4" /> Start Date
+                    </Label>
+                    <Input
+                      id="edit-start"
+                      type="date"
+                      value={editForm.start_date}
+                      onChange={(e) =>
+                        setEditForm((f) => ({ ...f, start_date: e.target.value }))
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-end" className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4" /> End Date
+                    </Label>
+                    <Input
+                      id="edit-end"
+                      type="date"
+                      value={editForm.end_date}
+                      min={editForm.start_date}
+                      onChange={(e) =>
+                        setEditForm((f) => ({ ...f, end_date: e.target.value }))
+                      }
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Visibility</Label>
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setEditForm((f) => ({ ...f, visibility: "private" }))
+                      }
+                      className={`
+                        flex-1 flex items-center justify-center gap-2 rounded-lg border p-3 text-sm font-medium transition-colors cursor-pointer
+                        ${
+                          editForm.visibility === "private"
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-background text-foreground border-input hover:bg-accent"
+                        }
+                      `}
+                    >
+                      <Lock size={16} />
+                      Private
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setEditForm((f) => ({ ...f, visibility: "public" }))
+                      }
+                      className={`
+                        flex-1 flex items-center justify-center gap-2 rounded-lg border p-3 text-sm font-medium transition-colors cursor-pointer
+                        ${
+                          editForm.visibility === "public"
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-background text-foreground border-input hover:bg-accent"
+                        }
+                      `}
+                    >
+                      <Globe size={16} />
+                      Public
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <Button type="submit" disabled={updateMutation.isPending}>
+                    {updateMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="mr-2 h-4 w-4" />
+                        Save Changes
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setEditing(false)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            ) : (
+              <>
+                <div className="flex items-start justify-between gap-3 flex-wrap">
+                  <div className="space-y-1">
+                    <h1 className="text-2xl font-bold tracking-tight">
+                      {trip.title}
+                    </h1>
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <MapPin size={16} />
+                      <span>{trip.destination}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {isOwner && (
+                      <Button variant="ghost" size="sm" onClick={startEditing}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <Badge
+                      variant={
+                        trip.visibility === "public" ? "secondary" : "outline"
+                      }
+                    >
+                      {trip.visibility === "public" ? (
+                        <Globe size={12} className="mr-1" />
+                      ) : (
+                        <Lock size={12} className="mr-1" />
+                      )}
+                      {trip.visibility}
+                    </Badge>
+                  </div>
+                </div>
+
+                {trip.description && (
+                  <p className="text-muted-foreground">{trip.description}</p>
+                )}
+
+                <div className="flex flex-wrap gap-4 text-sm">
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
+                    <Calendar size={14} />
+                    <span>
+                      {startDate} - {endDate}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
+                    <Users size={14} />
+                    <span>
+                      {trip.member_count} member
+                      {trip.member_count !== 1 ? "s" : ""}
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {!editing && <Separator />}
+
+            {isMember ? (
+              <>
+                {/* Invite link — only visible to members */}
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Invite Link</p>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 text-xs bg-muted px-3 py-2 rounded-md truncate">
+                      {window.location.origin}/trips/join/{trip.invite_code}
+                    </code>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={copyInviteLink}
+                    >
+                      {copied ? (
+                        <Check className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Member actions */}
+                <div className="flex gap-2 pt-2">
+                  {!isOwner && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => leaveMutation.mutate()}
+                      disabled={leaveMutation.isPending}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Leave Trip
+                    </Button>
+                  )}
+                  {isOwner && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        if (
+                          confirm("Are you sure you want to delete this trip?")
+                        ) {
+                          deleteMutation.mutate();
+                        }
+                      }}
+                      disabled={deleteMutation.isPending}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete Trip
+                    </Button>
+                  )}
+                </div>
+              </>
+            ) : (
+              /* Join button for non-members viewing a public trip */
               <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setEditing(false)}
+                className="w-full"
+                onClick={() => joinMutation.mutate()}
+                disabled={joinMutation.isPending}
               >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-title">Title</Label>
-              <Input
-                id="edit-title"
-                value={editForm.title}
-                onChange={(e) =>
-                  setEditForm((f) => ({ ...f, title: e.target.value }))
-                }
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-destination" className="flex items-center gap-2">
-                <MapPin className="h-4 w-4" /> Destination
-              </Label>
-              <DestinationCombobox
-                id="edit-destination"
-                value={editForm.destination}
-                onChange={(val) =>
-                  setEditForm((f) => ({ ...f, destination: val }))
-                }
-                placeholder="Search Bangladesh destinations..."
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-description">Description</Label>
-              <Textarea
-                id="edit-description"
-                value={editForm.description}
-                onChange={(e) =>
-                  setEditForm((f) => ({ ...f, description: e.target.value }))
-                }
-                rows={3}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-start" className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" /> Start Date
-                </Label>
-                <Input
-                  id="edit-start"
-                  type="date"
-                  value={editForm.start_date}
-                  onChange={(e) =>
-                    setEditForm((f) => ({ ...f, start_date: e.target.value }))
-                  }
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-end" className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" /> End Date
-                </Label>
-                <Input
-                  id="edit-end"
-                  type="date"
-                  value={editForm.end_date}
-                  min={editForm.start_date}
-                  onChange={(e) =>
-                    setEditForm((f) => ({ ...f, end_date: e.target.value }))
-                  }
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Visibility</Label>
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setEditForm((f) => ({ ...f, visibility: "private" }))
-                  }
-                  className={`
-                    flex-1 flex items-center justify-center gap-2 rounded-lg border p-3 text-sm font-medium transition-colors cursor-pointer
-                    ${
-                      editForm.visibility === "private"
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-background text-foreground border-input hover:bg-accent"
-                    }
-                  `}
-                >
-                  <Lock size={16} />
-                  Private
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setEditForm((f) => ({ ...f, visibility: "public" }))
-                  }
-                  className={`
-                    flex-1 flex items-center justify-center gap-2 rounded-lg border p-3 text-sm font-medium transition-colors cursor-pointer
-                    ${
-                      editForm.visibility === "public"
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-background text-foreground border-input hover:bg-accent"
-                    }
-                  `}
-                >
-                  <Globe size={16} />
-                  Public
-                </button>
-              </div>
-            </div>
-
-            <div className="flex gap-2 pt-2">
-              <Button type="submit" disabled={updateMutation.isPending}>
-                {updateMutation.isPending ? (
+                {joinMutation.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving...
+                    Joining...
                   </>
                 ) : (
                   <>
-                    <Save className="mr-2 h-4 w-4" />
-                    Save Changes
+                    <UsersRound className="mr-2 h-4 w-4" />
+                    Join This Trip
                   </>
                 )}
               </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setEditing(false)}
-              >
-                Cancel
-              </Button>
-            </div>
-          </form>
-        ) : (
-          <>
-            <div className="flex items-start justify-between gap-3 flex-wrap">
-              <div className="space-y-1">
-                <h1 className="text-2xl font-bold tracking-tight">{trip.title}</h1>
-                <div className="flex items-center gap-1.5 text-muted-foreground">
-                  <MapPin size={16} />
-                  <span>{trip.destination}</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {isOwner && (
-                  <Button variant="ghost" size="sm" onClick={startEditing}>
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                )}
-                <Badge
-                  variant={trip.visibility === "public" ? "secondary" : "outline"}
-                >
-                  {trip.visibility === "public" ? (
-                    <Globe size={12} className="mr-1" />
-                  ) : (
-                    <Lock size={12} className="mr-1" />
-                  )}
-                  {trip.visibility}
-                </Badge>
-              </div>
-            </div>
-
-            {trip.description && (
-              <p className="text-muted-foreground">{trip.description}</p>
             )}
+          </Card>
 
-            <div className="flex flex-wrap gap-4 text-sm">
-              <div className="flex items-center gap-1.5 text-muted-foreground">
-                <Calendar size={14} />
-                <span>
-                  {startDate} - {endDate}
-                </span>
+          {/* Members */}
+          <Card className="p-6 space-y-4">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <Users size={18} />
+              Members ({trip.members.length})
+            </h2>
+            <MemberList members={trip.members} />
+          </Card>
+
+          {/* Overlapping public trips at the same destination */}
+          {overlappingTrips && overlappingTrips.length > 0 && (
+            <Card className="p-6 space-y-4">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <UserSearch size={18} />
+                Other trips to {trip.destination}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Public trips with overlapping dates at the same destination.
+              </p>
+              <div className="space-y-2">
+                {overlappingTrips.map((t) => (
+                  <Link
+                    key={t.id}
+                    to="/trips/$tripId"
+                    params={{ tripId: t.id }}
+                    className="flex items-center justify-between gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors group"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{t.title}</p>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                        <span className="flex items-center gap-1">
+                          <Calendar size={12} />
+                          {new Date(t.start_date).toLocaleDateString()} -{" "}
+                          {new Date(t.end_date).toLocaleDateString()}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Users size={12} />
+                          {t.member_count} member
+                          {t.member_count !== 1 ? "s" : ""}
+                        </span>
+                      </div>
+                      {t.creator_name && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          by {t.creator_name}
+                        </p>
+                      )}
+                    </div>
+                    <ArrowLeft
+                      size={14}
+                      className="shrink-0 text-muted-foreground group-hover:text-foreground transition-colors rotate-180"
+                    />
+                  </Link>
+                ))}
               </div>
-              <div className="flex items-center gap-1.5 text-muted-foreground">
-                <Users size={14} />
-                <span>
-                  {trip.member_count} member{trip.member_count !== 1 ? "s" : ""}
-                </span>
+            </Card>
+          )}
+        </TabsContent>
+
+        {/* --- ITINERARY TAB --- */}
+        <TabsContent value="itinerary" className="space-y-4 pt-4">
+          {!trip.itinerary_id ? (
+            <Card className="p-8 text-center space-y-6">
+              <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                <Info className="h-6 w-6 text-muted-foreground" />
               </div>
-            </div>
-          </>
-        )}
-
-        {!editing && <Separator />}
-
-        {isMember ? (
-          <>
-            {/* Invite link — only visible to members */}
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Invite Link</p>
-              <div className="flex items-center gap-2">
-                <code className="flex-1 text-xs bg-muted px-3 py-2 rounded-md truncate">
-                  {window.location.origin}/trips/join/{trip.invite_code}
-                </code>
-                <Button variant="outline" size="sm" onClick={copyInviteLink}>
-                  {copied ? (
-                    <Check className="h-4 w-4 text-green-600" />
-                  ) : (
-                    <Copy className="h-4 w-4" />
-                  )}
-                </Button>
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold">No Shared Itinerary</h3>
+                <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                  A shared itinerary helps everyone stay on track. Only the trip
+                  owner can link an itinerary.
+                </p>
               </div>
-            </div>
 
-            {/* Member actions */}
-            <div className="flex gap-2 pt-2">
-              {!isOwner && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => leaveMutation.mutate()}
-                  disabled={leaveMutation.isPending}
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Leave Trip
-                </Button>
-              )}
               {isOwner && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    if (confirm("Are you sure you want to delete this trip?")) {
-                      deleteMutation.mutate();
-                    }
-                  }}
-                  disabled={deleteMutation.isPending}
-                  className="text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete Trip
-                </Button>
-              )}
-            </div>
-          </>
-        ) : (
-          /* Join button for non-members viewing a public trip */
-          <Button
-            className="w-full"
-            onClick={() => joinMutation.mutate()}
-            disabled={joinMutation.isPending}
-          >
-            {joinMutation.isPending ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Joining...
-              </>
-            ) : (
-              <>
-                <UsersRound className="mr-2 h-4 w-4" />
-                Join This Trip
-              </>
-            )}
-          </Button>
-        )}
-      </Card>
-
-      {/* Members */}
-      <Card className="p-6 space-y-4">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
-          <Users size={18} />
-          Members ({trip.members.length})
-        </h2>
-        <MemberList members={trip.members} />
-      </Card>
-
-      {/* Overlapping public trips at the same destination */}
-      {overlappingTrips && overlappingTrips.length > 0 && (
-        <Card className="p-6 space-y-4">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <UserSearch size={18} />
-            Other trips to {trip.destination}
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Public trips with overlapping dates at the same destination.
-          </p>
-          <div className="space-y-2">
-            {overlappingTrips.map((t) => (
-              <Link
-                key={t.id}
-                to="/trips/$tripId"
-                params={{ tripId: t.id }}
-                className="flex items-center justify-between gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors group"
-              >
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{t.title}</p>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
-                    <span className="flex items-center gap-1">
-                      <Calendar size={12} />
-                      {new Date(t.start_date).toLocaleDateString()} -{" "}
-                      {new Date(t.end_date).toLocaleDateString()}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Users size={12} />
-                      {t.member_count} member{t.member_count !== 1 ? "s" : ""}
-                    </span>
+                <div className="max-w-xs mx-auto space-y-3">
+                  <div className="space-y-1.5 text-left">
+                    <Label>Select one of your itineraries</Label>
+                    <Select
+                      onValueChange={(val: string | null) => val && linkItineraryMutation.mutate(val)}
+                      disabled={
+                        linkItineraryMutation.isPending ||
+                        myItineraries.length === 0
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose an itinerary..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {myItineraries.map((it) => (
+                          <SelectItem key={it.id} value={it.id}>
+                            {it.destination} ({it.duration_days} days)
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  {t.creator_name && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      by {t.creator_name}
+                  {myItineraries.length === 0 && (
+                    <p className="text-xs text-destructive">
+                      You haven't created any itineraries yet.
                     </p>
                   )}
                 </div>
-                <ArrowLeft
-                  size={14}
-                  className="shrink-0 text-muted-foreground group-hover:text-foreground transition-colors rotate-180"
-                />
-              </Link>
-            ))}
-          </div>
-        </Card>
-      )}
+              )}
+            </Card>
+          ) : (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold flex items-center gap-2">
+                    Shared Itinerary
+                    {isOwner && (
+                         <Button variant="ghost" size="sm" className="h-7 text-[10px] uppercase font-bold text-muted-foreground hover:text-primary px-2" onClick={() => {
+                             if(confirm("Change linked itinerary?")) {
+                                 // Logic to show changer or just reset will be handled by re-linking
+                                 toast.info("Select a new itinerary from Overview or refresh.");
+                             }
+                         }}>Change</Button>
+                    )}
+                </h3>
+              </div>
+              <SharedItineraryView itineraryId={trip.itinerary_id as string} />
+            </div>
+          )}
+        </TabsContent>
+
+        {/* --- POLLS TAB --- */}
+        <TabsContent value="polls" className="pt-4">
+          <GroupPolls tripId={tripId} />
+        </TabsContent>
+
+        {/* --- FEED TAB --- */}
+        <TabsContent value="feed" className="pt-4">
+          <GroupActivityFeed tripId={tripId} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
+
 }

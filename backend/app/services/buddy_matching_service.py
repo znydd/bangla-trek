@@ -12,6 +12,7 @@ from app.models.itinerary import Itinerary
 from app.models.user import User
 from app.models.user_location import UserLocation
 from app.schemas.buddy_match import BuddyDiscoveryFilters, BuddyMatchSuggestion
+from app.services.messaging_service import MessagingService
 
 
 class BuddyMatchingService:
@@ -684,6 +685,27 @@ class BuddyMatchingService:
                     status="accepted",
                 )
                 self.db.add(reciprocal)
+
+            # Trigger overlap notifications if high score or shared destinations
+            if match.common_destinations:
+                messaging_service = MessagingService(self.db)
+                # Notify both users
+                initiator = self.db.query(User).filter(User.id == match.user_id).first()
+                target = self.db.query(User).filter(User.id == match.matched_user_id).first()
+                
+                if initiator and target:
+                    # Notify the one who just accepted (user_id)
+                    messaging_service.notify_travel_overlap(
+                        user_id=user_id,
+                        friend_name=initiator.name if user_id != initiator.id else target.name,
+                        destination=match.common_destinations[0]
+                    )
+                    # Notify the other person
+                    messaging_service.notify_travel_overlap(
+                        user_id=target.id if user_id == initiator.id else initiator.id,
+                        friend_name=target.name if user_id == initiator.id else initiator.name,
+                        destination=match.common_destinations[0]
+                    )
 
         self.db.commit()
         self.db.refresh(match)

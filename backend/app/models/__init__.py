@@ -9,6 +9,10 @@ from app.models.emergency_facility import EmergencyFacility
 from app.models.transit_blueprint import TransitBlueprint, TransitBlueprintStep
 from app.models.user_location import UserLocation
 from app.models.buddy_match import BuddyMatch
+from app.models.chat_message import ChatMessage
+from app.models.group_activity import GroupActivity
+from app.models.notification import Notification
+from app.models.poll import Poll, PollOption, Vote
 
 __all__ = [
     "User", "CommunityEntry", "EntryPhoto", "EntryVideoEmbed",
@@ -16,5 +20,6 @@ __all__ = [
     "GroupTrip", "GroupTripMember",
     "EmergencyFacility",
     "TransitBlueprint", "TransitBlueprintStep",
-    "GroupTrip", "GroupTripMember", "UserLocation", "BuddyMatch"
+    "GroupTrip", "GroupTripMember", "UserLocation", "BuddyMatch",
+    "ChatMessage", "GroupActivity", "Poll", "PollOption", "Vote",
 ]

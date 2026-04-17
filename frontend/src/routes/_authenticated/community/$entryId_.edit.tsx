@@ -1,11 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { communityEntryQueryOptions } from "@/services/community.service";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { communityEntryQueryOptions, updateEntry } from "@/services/community.service";
 import { EntryForm } from "@/components/community/EntryForm";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth } from "@/hooks/useAuth"; // assuming there's a useAuth or similar, wait let me check auth method later 
-// Actually we can just get current user from API or skip auth check in UI, let backend handle or check author_name?
-// wait, we can just fetch entry and render.
+import { toast } from "sonner";
+import type { UpdateEntryPayload } from "@/types/community";
 
 export const Route = createFileRoute(
   "/_authenticated/community/$entryId_/edit"
@@ -15,9 +14,24 @@ export const Route = createFileRoute(
 
 function EditCommunityEntryPage() {
   const { entryId } = Route.useParams();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  
   const { data: entry, isLoading, error } = useQuery(
     communityEntryQueryOptions(entryId)
   );
+
+  const mutation = useMutation({
+    mutationFn: (payload: UpdateEntryPayload) => updateEntry(entryId, payload),
+    onSuccess: () => {
+      toast.success("Entry updated successfully!");
+      queryClient.invalidateQueries({ queryKey: ["community-entries", entryId] });
+      navigate({ to: "/community/$entryId", params: { entryId } });
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.detail || "Failed to update entry");
+    },
+  });
 
   if (isLoading) {
     return (
@@ -47,7 +61,13 @@ function EditCommunityEntryPage() {
       </div>
       
       <div className="bg-card border border-border/50 rounded-xl p-6">
-        <EntryForm mode="edit" defaultValues={entry} />
+        <EntryForm 
+          mode="edit" 
+          defaultValues={entry} 
+          onSubmit={async (data) => {
+            mutation.mutate(data);
+          }} 
+        />
       </div>
     </div>
   );

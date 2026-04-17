@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { User as UserIcon, LogOut, ChevronDown, Map, Compass, UsersRound, ShieldAlert, Footprints } from "lucide-react";
+import NotificationDropdown from "./NotificationDropdown";
 
 export default function Navbar() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -46,6 +47,7 @@ export default function Navbar() {
             <Button variant="ghost" render={<Link to="/emergency" activeProps={{ className: "text-foreground bg-muted" }} />} className="font-medium text-muted-foreground hover:text-foreground">
               <ShieldAlert size={16} className="mr-2" />
               Emergency
+            </Button>
             <Button variant="ghost" render={<Link to="/transit-blueprints" activeProps={{ className: "text-foreground bg-muted" }} />} className="font-medium text-muted-foreground hover:text-foreground">
               <Footprints size={16} className="mr-2" />
               Transit Blueprints
@@ -57,7 +59,9 @@ export default function Navbar() {
           {isLoading ? (
             <div className="h-8 w-24 bg-muted animate-pulse rounded-lg" />
           ) : isAuthenticated && user ? (
-            <DropdownMenu>
+            <div className="flex items-center gap-1 sm:gap-2">
+              <NotificationDropdown />
+              <DropdownMenu>
               <DropdownMenuTrigger render={<Button variant="ghost" className="relative flex items-center gap-2 pr-1 h-10 rounded-full hover:bg-muted" />}>
                   <div className="h-7 w-7 rounded-full overflow-hidden border bg-muted shrink-0">
                     {user.picture_url ? (
@@ -100,6 +104,7 @@ export default function Navbar() {
                 </DropdownMenuItem>
                 <DropdownMenuItem render={<Link to="/emergency" className="w-full" />}>
                   Emergency Hub
+                </DropdownMenuItem>
                 <DropdownMenuItem render={<Link to="/transit-blueprints" className="w-full" />}>
                   Transit Blueprints
                 </DropdownMenuItem>
@@ -109,6 +114,7 @@ export default function Navbar() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            </div>
           ) : (
             <Button onClick={loginWithGoogle} size="sm" className="rounded-full px-5">
               Login

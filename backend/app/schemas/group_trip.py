@@ -51,6 +51,7 @@ class GroupTripRead(BaseModel):
     end_date: date
     visibility: str
     invite_code: str
+    itinerary_id: Optional[uuid.UUID] = None
     member_count: int = 0
     created_at: datetime
 

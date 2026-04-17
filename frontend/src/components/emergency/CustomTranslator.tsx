@@ -81,7 +81,10 @@ export function CustomTranslator() {
         />
 
         <div className="flex items-center gap-3">
-          <Select value={dialect} onValueChange={setDialect}>
+          <Select
+            value={dialect}
+            onValueChange={(val) => val && setDialect(val)}
+          >
             <SelectTrigger className="w-[220px]">
               <SelectValue placeholder="Select dialect" />
             </SelectTrigger>

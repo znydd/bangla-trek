@@ -1,7 +1,7 @@
 import secrets
 import uuid
 from datetime import date, datetime
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
 from sqlalchemy import Date, DateTime, ForeignKey, String, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import UUID
@@ -10,6 +10,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 
 if TYPE_CHECKING:
+    from .itinerary import Itinerary
     from .user import User
 
 
@@ -25,6 +26,9 @@ class GroupTrip(Base):
     )
     creator_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True
+    )
+    itinerary_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("itineraries.id"), nullable=True, index=True
     )
 
     title: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -48,6 +52,7 @@ class GroupTrip(Base):
 
     # Relationships
     creator: Mapped["User"] = relationship("User", foreign_keys=[creator_id])
+    itinerary: Mapped[Optional["Itinerary"]] = relationship("Itinerary")
     members: Mapped[List["GroupTripMember"]] = relationship(
         "GroupTripMember", back_populates="trip", cascade="all, delete-orphan"
     )
