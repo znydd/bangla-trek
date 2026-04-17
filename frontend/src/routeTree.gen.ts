@@ -23,9 +23,9 @@ import { Route as AuthenticatedCommunityIndexRouteImport } from './routes/_authe
 import { Route as AuthenticatedBuddyMatchingIndexRouteImport } from './routes/_authenticated/buddy-matching.index'
 import { Route as AuthenticatedTripsNewRouteImport } from './routes/_authenticated/trips/new'
 import { Route as AuthenticatedTripsTripIdRouteImport } from './routes/_authenticated/trips/$tripId'
-import { Route as AuthenticatedEmergencyNewRouteImport } from './routes/_authenticated/emergency/new'
 import { Route as AuthenticatedTransitBlueprintsNewRouteImport } from './routes/_authenticated/transit-blueprints/new'
 import { Route as AuthenticatedTransitBlueprintsBlueprintIdRouteImport } from './routes/_authenticated/transit-blueprints/$blueprintId'
+import { Route as AuthenticatedEmergencyNewRouteImport } from './routes/_authenticated/emergency/new'
 import { Route as AuthenticatedCommunityNewRouteImport } from './routes/_authenticated/community/new'
 import { Route as AuthenticatedCommunityEntryIdRouteImport } from './routes/_authenticated/community/$entryId'
 import { Route as AuthenticatedPlannerItineraryIdIndexRouteImport } from './routes/_authenticated/planner/$itineraryId/index'
@@ -68,6 +68,8 @@ const AuthenticatedTransitBlueprintsIndexRoute =
   AuthenticatedTransitBlueprintsIndexRouteImport.update({
     id: '/transit-blueprints/',
     path: '/transit-blueprints/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedSocialMapIndexRoute =
   AuthenticatedSocialMapIndexRouteImport.update({
     id: '/social-map/',
@@ -109,10 +111,6 @@ const AuthenticatedTripsTripIdRoute =
     path: '/trips/$tripId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedEmergencyNewRoute =
-  AuthenticatedEmergencyNewRouteImport.update({
-    id: '/emergency/new',
-    path: '/emergency/new',
 const AuthenticatedTransitBlueprintsNewRoute =
   AuthenticatedTransitBlueprintsNewRouteImport.update({
     id: '/transit-blueprints/new',
@@ -123,6 +121,12 @@ const AuthenticatedTransitBlueprintsBlueprintIdRoute =
   AuthenticatedTransitBlueprintsBlueprintIdRouteImport.update({
     id: '/transit-blueprints/$blueprintId',
     path: '/transit-blueprints/$blueprintId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedEmergencyNewRoute =
+  AuthenticatedEmergencyNewRouteImport.update({
+    id: '/emergency/new',
+    path: '/emergency/new',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedCommunityNewRoute =
@@ -186,8 +190,8 @@ export interface FileRoutesByFullPath {
   '/community/': typeof AuthenticatedCommunityIndexRoute
   '/emergency/': typeof AuthenticatedEmergencyIndexRoute
   '/planner/': typeof AuthenticatedPlannerIndexRoute
-  '/transit-blueprints/': typeof AuthenticatedTransitBlueprintsIndexRoute
   '/social-map/': typeof AuthenticatedSocialMapIndexRoute
+  '/transit-blueprints/': typeof AuthenticatedTransitBlueprintsIndexRoute
   '/trips/': typeof AuthenticatedTripsIndexRoute
   '/community/$entryId/edit': typeof AuthenticatedCommunityEntryIdEditRoute
   '/trips/join/$inviteCode': typeof AuthenticatedTripsJoinInviteCodeRoute
@@ -211,8 +215,8 @@ export interface FileRoutesByTo {
   '/community': typeof AuthenticatedCommunityIndexRoute
   '/emergency': typeof AuthenticatedEmergencyIndexRoute
   '/planner': typeof AuthenticatedPlannerIndexRoute
-  '/transit-blueprints': typeof AuthenticatedTransitBlueprintsIndexRoute
   '/social-map': typeof AuthenticatedSocialMapIndexRoute
+  '/transit-blueprints': typeof AuthenticatedTransitBlueprintsIndexRoute
   '/trips': typeof AuthenticatedTripsIndexRoute
   '/community/$entryId/edit': typeof AuthenticatedCommunityEntryIdEditRoute
   '/trips/join/$inviteCode': typeof AuthenticatedTripsJoinInviteCodeRoute
@@ -238,8 +242,8 @@ export interface FileRoutesById {
   '/_authenticated/community/': typeof AuthenticatedCommunityIndexRoute
   '/_authenticated/emergency/': typeof AuthenticatedEmergencyIndexRoute
   '/_authenticated/planner/': typeof AuthenticatedPlannerIndexRoute
-  '/_authenticated/transit-blueprints/': typeof AuthenticatedTransitBlueprintsIndexRoute
   '/_authenticated/social-map/': typeof AuthenticatedSocialMapIndexRoute
+  '/_authenticated/transit-blueprints/': typeof AuthenticatedTransitBlueprintsIndexRoute
   '/_authenticated/trips/': typeof AuthenticatedTripsIndexRoute
   '/_authenticated/community/$entryId_/edit': typeof AuthenticatedCommunityEntryIdEditRoute
   '/_authenticated/trips/join/$inviteCode': typeof AuthenticatedTripsJoinInviteCodeRoute
@@ -265,8 +269,8 @@ export interface FileRouteTypes {
     | '/community/'
     | '/emergency/'
     | '/planner/'
-    | '/transit-blueprints/'
     | '/social-map/'
+    | '/transit-blueprints/'
     | '/trips/'
     | '/community/$entryId/edit'
     | '/trips/join/$inviteCode'
@@ -290,8 +294,8 @@ export interface FileRouteTypes {
     | '/community'
     | '/emergency'
     | '/planner'
-    | '/transit-blueprints'
     | '/social-map'
+    | '/transit-blueprints'
     | '/trips'
     | '/community/$entryId/edit'
     | '/trips/join/$inviteCode'
@@ -316,8 +320,8 @@ export interface FileRouteTypes {
     | '/_authenticated/community/'
     | '/_authenticated/emergency/'
     | '/_authenticated/planner/'
-    | '/_authenticated/transit-blueprints/'
     | '/_authenticated/social-map/'
+    | '/_authenticated/transit-blueprints/'
     | '/_authenticated/trips/'
     | '/_authenticated/community/$entryId_/edit'
     | '/_authenticated/trips/join/$inviteCode'
@@ -382,6 +386,8 @@ declare module '@tanstack/react-router' {
       path: '/transit-blueprints'
       fullPath: '/transit-blueprints/'
       preLoaderRoute: typeof AuthenticatedTransitBlueprintsIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/social-map/': {
       id: '/_authenticated/social-map/'
       path: '/social-map'
@@ -431,11 +437,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTripsTripIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/emergency/new': {
-      id: '/_authenticated/emergency/new'
-      path: '/emergency/new'
-      fullPath: '/emergency/new'
-      preLoaderRoute: typeof AuthenticatedEmergencyNewRouteImport
     '/_authenticated/transit-blueprints/new': {
       id: '/_authenticated/transit-blueprints/new'
       path: '/transit-blueprints/new'
@@ -448,6 +449,13 @@ declare module '@tanstack/react-router' {
       path: '/transit-blueprints/$blueprintId'
       fullPath: '/transit-blueprints/$blueprintId'
       preLoaderRoute: typeof AuthenticatedTransitBlueprintsBlueprintIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/emergency/new': {
+      id: '/_authenticated/emergency/new'
+      path: '/emergency/new'
+      fullPath: '/emergency/new'
+      preLoaderRoute: typeof AuthenticatedEmergencyNewRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/community/new': {
@@ -515,8 +523,8 @@ interface AuthenticatedRouteChildren {
   AuthenticatedCommunityIndexRoute: typeof AuthenticatedCommunityIndexRoute
   AuthenticatedEmergencyIndexRoute: typeof AuthenticatedEmergencyIndexRoute
   AuthenticatedPlannerIndexRoute: typeof AuthenticatedPlannerIndexRoute
-  AuthenticatedTransitBlueprintsIndexRoute: typeof AuthenticatedTransitBlueprintsIndexRoute
   AuthenticatedSocialMapIndexRoute: typeof AuthenticatedSocialMapIndexRoute
+  AuthenticatedTransitBlueprintsIndexRoute: typeof AuthenticatedTransitBlueprintsIndexRoute
   AuthenticatedTripsIndexRoute: typeof AuthenticatedTripsIndexRoute
   AuthenticatedCommunityEntryIdEditRoute: typeof AuthenticatedCommunityEntryIdEditRoute
   AuthenticatedTripsJoinInviteCodeRoute: typeof AuthenticatedTripsJoinInviteCodeRoute
@@ -540,9 +548,9 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCommunityIndexRoute: AuthenticatedCommunityIndexRoute,
   AuthenticatedEmergencyIndexRoute: AuthenticatedEmergencyIndexRoute,
   AuthenticatedPlannerIndexRoute: AuthenticatedPlannerIndexRoute,
+  AuthenticatedSocialMapIndexRoute: AuthenticatedSocialMapIndexRoute,
   AuthenticatedTransitBlueprintsIndexRoute:
     AuthenticatedTransitBlueprintsIndexRoute,
-  AuthenticatedSocialMapIndexRoute: AuthenticatedSocialMapIndexRoute,
   AuthenticatedTripsIndexRoute: AuthenticatedTripsIndexRoute,
   AuthenticatedCommunityEntryIdEditRoute:
     AuthenticatedCommunityEntryIdEditRoute,

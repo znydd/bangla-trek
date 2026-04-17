@@ -75,10 +75,6 @@ function BuddyMatchingPage() {
     actionMutation.mutate({ matchId, action: "reject" });
   };
 
-  const handleBlock = (matchId: string) => {
-    actionMutation.mutate({ matchId, action: "block" });
-  };
-
   const handleDelete = (matchId: string) => {
     deleteMutation.mutate(matchId);
   };

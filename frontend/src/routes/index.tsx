@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { currentUserQueryOptions, loginWithGoogle } from "@/services/auth.service";
 import { Button } from "@/components/ui/button";
 import { Compass, Map, ShieldCheck, Zap } from "lucide-react";

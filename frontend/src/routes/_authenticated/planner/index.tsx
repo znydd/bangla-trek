@@ -54,7 +54,7 @@ function PlannerPage() {
   const [groupType, setGroupType] = useState<GroupType>("solo");
 
   // Existing itineraries
-  const { data: itineraries, isLoading: isLoadingList } = useQuery(
+  const { data: itineraries } = useQuery(
     userItinerariesQueryOptions()
   );
 

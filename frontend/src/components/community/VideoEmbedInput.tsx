@@ -2,7 +2,7 @@ import { VideoEmbed } from "@/types/community";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2, Youtube, Facebook, Music2, AlertCircle } from "lucide-react";
+import { Plus, Trash2, Youtube, Facebook, Music2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface VideoEmbedInputProps {
