@@ -42,6 +42,19 @@ export interface CommunityEntry {
   updated_at: string;
 }
 
+export interface CommunityMapPoint {
+  id: string;
+  user_id: string;
+  author_name: string;
+  author_picture_url: string | null;
+  category: EntryCategory;
+  name: string;
+  location: string;
+  latitude: number;
+  longitude: number;
+  tags: EntryTag[];
+}
+
 export interface CommunityEntryListParams {
   page?: number;
   per_page?: number;

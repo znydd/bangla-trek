@@ -7,12 +7,10 @@ import { AccommodationCard } from "@/components/accommodation/AccommodationCard"
 import { AccommodationFilters } from "@/components/accommodation/AccommodationFilters";
 import { AIRecommendationStrip } from "@/components/accommodation/AIRecommendationStrip";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   ArrowLeft,
   BedDouble,
-  Loader2,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";

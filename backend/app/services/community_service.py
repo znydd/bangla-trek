@@ -96,6 +96,43 @@ class CommunityService:
         
         return entry
 
+    def list_map_points(
+        self,
+        category: Optional[str] = None,
+        tag: Optional[str] = None,
+        search: Optional[str] = None,
+        limit: int = 1000,
+    ) -> List[CommunityEntry]:
+        """
+        Returns coordinate-bearing entries for map rendering.
+        No pagination-by-page to keep social map markers stable.
+        """
+        query = (
+            select(CommunityEntry)
+            .join(User, CommunityEntry.user_id == User.id)
+            .where(CommunityEntry.latitude.is_not(None))
+            .where(CommunityEntry.longitude.is_not(None))
+            .order_by(desc(CommunityEntry.created_at))
+            .limit(limit)
+        )
+
+        if category:
+            query = query.filter(CommunityEntry.category == category)
+        if tag:
+            query = query.filter(CommunityEntry.tags.any(tag))
+        if search:
+            search_filter = or_(
+                CommunityEntry.name.ilike(f"%{search}%"),
+                CommunityEntry.location.ilike(f"%{search}%"),
+            )
+            query = query.filter(search_filter)
+
+        items = self.db.execute(query).scalars().all()
+        for item in items:
+            item.author_name = item.user.name
+            item.author_picture_url = item.user.picture_url
+        return list(items)
+
     def create_entry(self, user_id: uuid.UUID, payload: CommunityEntryCreate) -> CommunityEntry:
         """
         Create a new community entry.

@@ -8,6 +8,7 @@ import { getPriceRangeLabel } from "./EntryCard";
 import { useAuth } from "@/hooks/useAuth";
 import { NomadMetrics } from "./NomadMetrics";
 import { LocationMap } from "@/components/community/LocationMap";
+import { ReviewsSection } from "@/components/reviews/ReviewsSection";
 import { 
   MoreVertical, 
   Edit, 
@@ -132,6 +133,8 @@ export function EntryDetail({ entry, onDelete, isDeleting }: EntryDetailProps) {
               )}
             </div>
           </section>
+
+          <ReviewsSection entryId={entry.id} />
         </div>
 
         <div className="space-y-8">

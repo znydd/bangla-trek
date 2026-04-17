@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { User as UserIcon, LogOut, ChevronDown, Map, Compass, UsersRound, Navigation } from "lucide-react";
+import { User as UserIcon, LogOut, ChevronDown, Map, Compass, UsersRound, ShieldAlert, Footprints } from "lucide-react";
 
 export default function Navbar() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -31,6 +32,10 @@ export default function Navbar() {
               <Map size={16} className="mr-2" />
               Community
             </Button>
+            <Button variant="ghost" render={<Link to="/social-map" activeProps={{ className: "text-foreground bg-muted" }} />} className="font-medium text-muted-foreground hover:text-foreground">
+              <Map size={16} className="mr-2" />
+              Social Map
+            </Button>
             <Button variant="ghost" render={<Link to="/planner" activeProps={{ className: "text-foreground bg-muted" }} />} className="font-medium text-muted-foreground hover:text-foreground">
               <Compass size={16} className="mr-2" />
               AI Planner
@@ -45,6 +50,15 @@ export default function Navbar() {
                 Route Optimizer
               </Button>
             }
+            <Button variant="ghost"
+              render={<Link to="/emergency" activeProps={{ className: "text-foreground bg-muted" }} />} className="font-medium text-muted-foreground hover:text-foreground">
+              <ShieldAlert size={16} className="mr-2" />
+              Emergency
+            </Button>
+            <Button variant="ghost" render={<Link to="/transit-blueprints" activeProps={{ className: "text-foreground bg-muted" }} />} className="font-medium text-muted-foreground hover:text-foreground">
+              <Footprints size={16} className="mr-2" />
+              Transit Blueprints
+            </Button>
           </div>
         </div>
 
@@ -87,11 +101,19 @@ export default function Navbar() {
                 <DropdownMenuItem render={<Link to="/community" className="w-full" />}>
                   Community Explore
                 </DropdownMenuItem>
+                <DropdownMenuItem render={<Link to="/social-map" className="w-full" />}>
+                  Social Map
+                </DropdownMenuItem>
                 <DropdownMenuItem render={<Link to="/trips" className="w-full" />}>
                   Group Trips
                 </DropdownMenuItem>
                 <DropdownMenuItem render={<Link to="/route-optimizer" className="w-full" />}>
                   Route Optimizer
+                <DropdownMenuItem render={<Link to="/emergency" className="w-full" />}>
+                  Emergency Hub
+                </DropdownMenuItem>
+                <DropdownMenuItem render={<Link to="/transit-blueprints" className="w-full" />}>
+                  Transit Blueprints
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={logout} variant="destructive">
                   <LogOut size={16} className="mr-2" />

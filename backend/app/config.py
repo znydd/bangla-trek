@@ -36,9 +36,13 @@ class Settings(BaseSettings):
 
     # MapTiler
     MAPTILER_KEY: str
+    #BariKoi
+    BARIKOI_API_KEY: str
 
     # Environment
     IS_PRODUCTION: bool = False
 
 
 settings = Settings()
+
+
