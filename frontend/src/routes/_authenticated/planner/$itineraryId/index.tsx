@@ -4,6 +4,7 @@ import { itineraryQueryOptions } from "@/services/itinerary.service";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PlannerFarePanel } from "@/components/transit-fares/PlannerFarePanel";
 import {
   ArrowLeft,
   MapPin,
@@ -204,6 +205,16 @@ function ItineraryViewPage() {
               <p className="text-sm text-muted-foreground leading-relaxed">
                 {activity.description}
               </p>
+              {activity.category === "transport" && (
+                <PlannerFarePanel
+                  origin={
+                    idx > 0
+                      ? dayActivities[idx - 1].location
+                      : itinerary.destination
+                  }
+                  destination={activity.location}
+                />
+              )}
             </Card>
           </div>
         ))}
