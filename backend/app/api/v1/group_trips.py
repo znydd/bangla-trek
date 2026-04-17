@@ -16,7 +16,16 @@ from app.schemas.group_trip import (
     GroupTripUpdate,
     OverlappingTrip,
 )
+from app.schemas.trip_budget import (
+    BudgetSummary,
+    GroupTripBudgetRead,
+    GroupTripBudgetUpsert,
+    GroupTripExpenseCreate,
+    GroupTripExpenseRead,
+    GroupTripExpenseUpdate,
+)
 from app.services.group_trip_service import GroupTripService
+from app.services.trip_budget_service import TripBudgetService
 
 router = APIRouter(prefix="/group-trips", tags=["group-trips"])
 
@@ -180,6 +189,110 @@ def delete_trip(
     try:
         service.delete_trip(trip_id, uuid.UUID(user_id))
         return {"detail": "Trip deleted"}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+
+
+@router.get("/{trip_id}/budget", response_model=GroupTripBudgetRead | None)
+def get_budget(
+    trip_id: uuid.UUID,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    service = TripBudgetService(db)
+    try:
+        return service.get_budget(trip_id, uuid.UUID(user_id))
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+
+
+@router.put("/{trip_id}/budget", response_model=GroupTripBudgetRead)
+def upsert_budget(
+    trip_id: uuid.UUID,
+    payload: GroupTripBudgetUpsert,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    service = TripBudgetService(db)
+    try:
+        return service.upsert_budget(trip_id, uuid.UUID(user_id), payload)
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+
+
+@router.get("/{trip_id}/budget/summary", response_model=BudgetSummary)
+def budget_summary(
+    trip_id: uuid.UUID,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    service = TripBudgetService(db)
+    try:
+        return service.get_summary(trip_id, uuid.UUID(user_id))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+
+
+@router.get("/{trip_id}/expenses", response_model=list[GroupTripExpenseRead])
+def list_expenses(
+    trip_id: uuid.UUID,
+    limit: int = Query(200, ge=1, le=1000),
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    service = TripBudgetService(db)
+    try:
+        return service.list_expenses(trip_id, uuid.UUID(user_id), limit=limit)
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+
+
+@router.post("/{trip_id}/expenses", response_model=GroupTripExpenseRead)
+def create_expense(
+    trip_id: uuid.UUID,
+    payload: GroupTripExpenseCreate,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    service = TripBudgetService(db)
+    try:
+        return service.create_expense(trip_id, uuid.UUID(user_id), payload)
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+
+
+@router.put("/{trip_id}/expenses/{expense_id}", response_model=GroupTripExpenseRead)
+def update_expense(
+    trip_id: uuid.UUID,
+    expense_id: uuid.UUID,
+    payload: GroupTripExpenseUpdate,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    service = TripBudgetService(db)
+    try:
+        return service.update_expense(trip_id, expense_id, uuid.UUID(user_id), payload)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+
+
+@router.delete("/{trip_id}/expenses/{expense_id}")
+def delete_expense(
+    trip_id: uuid.UUID,
+    expense_id: uuid.UUID,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    service = TripBudgetService(db)
+    try:
+        service.delete_expense(trip_id, expense_id, uuid.UUID(user_id))
+        return {"detail": "Expense deleted"}
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except PermissionError as e:
