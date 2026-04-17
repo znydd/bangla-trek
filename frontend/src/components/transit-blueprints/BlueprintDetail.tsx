@@ -1,6 +1,5 @@
 import type { TransitBlueprint } from "@/types/transit-blueprint";
 import { BlueprintStepTimeline } from "./BlueprintStepTimeline";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   ArrowRight,

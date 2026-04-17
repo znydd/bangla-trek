@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { PhotoItem } from "@/types/community";
 import { Button } from "@/components/ui/button";
-import { ImagePlus, X, Trash2, ImageIcon } from "lucide-react";
+import { ImagePlus, X, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 

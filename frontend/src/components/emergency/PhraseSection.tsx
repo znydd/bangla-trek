@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { EmergencyPhraseCategory } from "@/types/emergency";
-import { Copy, Check, Volume2 } from "lucide-react";
+import { Copy, Check } from "lucide-react";
 import { useState } from "react";
 
 interface PhraseSectionProps {

@@ -2,11 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { accommodationQueryOptions } from "@/services/accommodation.service";
 import { itineraryQueryOptions } from "@/services/itinerary.service";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { LocationMap } from "@/components/community/LocationMap";
+import { ReviewsSection } from "@/components/reviews/ReviewsSection";
 import {
   ArrowLeft,
   MapPin,
@@ -219,6 +219,11 @@ function AccommodationDetailPage() {
               )}
             </div>
           </section>
+
+          <ReviewsSection
+            entryId={accommodation.id}
+            title="Guest Reviews"
+          />
 
           {/* Nearby Trip Attractions */}
           {attractionLocations.length > 0 && (

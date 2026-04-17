@@ -14,7 +14,6 @@ import {
   Sparkles,
   Loader2,
   Send,
-  ArrowRight,
   Eye,
 } from "lucide-react";
 

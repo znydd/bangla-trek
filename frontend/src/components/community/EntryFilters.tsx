@@ -30,7 +30,8 @@ export function EntryFilters({ filters, onChange }: EntryFiltersProps) {
     onChange({ ...filters, search: e.target.value, page: 1 });
   };
 
-  const handleCategoryChange = (value: string) => {
+  const handleCategoryChange = (value: string | null) => {
+    if (!value) return;
     onChange({
       ...filters,
       category: value === "all" ? undefined : (value as EntryCategory),
@@ -46,7 +47,8 @@ export function EntryFilters({ filters, onChange }: EntryFiltersProps) {
     });
   };
 
-  const handleSortChange = (value: string) => {
+  const handleSortChange = (value: string | null) => {
+    if (!value) return;
     onChange({ ...filters, sort_by: value as "newest" | "name", page: 1 });
   };
 

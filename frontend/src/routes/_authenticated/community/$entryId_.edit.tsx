@@ -1,11 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { communityEntryQueryOptions } from "@/services/community.service";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  communityEntryQueryOptions,
+  deletePhoto,
+  updateEntry,
+  uploadPhotos,
+} from "@/services/community.service";
 import { EntryForm } from "@/components/community/EntryForm";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth } from "@/hooks/useAuth"; // assuming there's a useAuth or similar, wait let me check auth method later 
-// Actually we can just get current user from API or skip auth check in UI, let backend handle or check author_name?
-// wait, we can just fetch entry and render.
+import type { CreateEntryPayload } from "@/types/community";
 
 export const Route = createFileRoute(
   "/_authenticated/community/$entryId_/edit"
@@ -15,9 +18,43 @@ export const Route = createFileRoute(
 
 function EditCommunityEntryPage() {
   const { entryId } = Route.useParams();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data: entry, isLoading, error } = useQuery(
     communityEntryQueryOptions(entryId)
   );
+
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: async ({
+      data,
+      photos,
+      deletedPhotoIds,
+    }: {
+      data: CreateEntryPayload;
+      photos: File[];
+      deletedPhotoIds: string[];
+    }) => {
+      const updated = await updateEntry(entryId, data);
+      await Promise.all(deletedPhotoIds.map((photoId) => deletePhoto(entryId, photoId)));
+      if (photos.length > 0) {
+        await uploadPhotos(entryId, photos);
+      }
+      return updated;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["community-entries"] });
+      queryClient.invalidateQueries({ queryKey: ["community-entries", entryId] });
+      navigate({ to: "/community/$entryId", params: { entryId } });
+    },
+  });
+
+  const handleSubmit = async (
+    data: CreateEntryPayload,
+    photos: File[],
+    deletedPhotoIds: string[],
+  ) => {
+    await mutateAsync({ data, photos, deletedPhotoIds });
+  };
 
   if (isLoading) {
     return (
@@ -47,7 +84,12 @@ function EditCommunityEntryPage() {
       </div>
       
       <div className="bg-card border border-border/50 rounded-xl p-6">
-        <EntryForm mode="edit" defaultValues={entry} />
+        <EntryForm
+          mode="edit"
+          defaultValues={entry}
+          onSubmit={handleSubmit}
+          isLoading={isPending}
+        />
       </div>
     </div>
   );

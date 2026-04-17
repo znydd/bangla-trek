@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import type { TransitBlueprintListItem } from "@/types/transit-blueprint";
 import {
   ArrowRight,
@@ -9,7 +8,6 @@ import {
   Footprints,
   User,
 } from "lucide-react";
-import { getModeIcon } from "./BlueprintStepTimeline";
 
 interface BlueprintCardProps {
   blueprint: TransitBlueprintListItem;
