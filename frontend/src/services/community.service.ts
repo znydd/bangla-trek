@@ -2,6 +2,7 @@ import { queryOptions } from "@tanstack/react-query";
 import api from "@/lib/api";
 import type {
   CommunityEntry,
+  CommunityMapPoint,
   CommunityEntryListParams,
   CreateEntryPayload,
   PaginatedResponse,
@@ -32,6 +33,21 @@ export const communityEntryQueryOptions = (entryId: string) =>
       const res = await api.get<CommunityEntry>(`${BASE}/${entryId}`);
       return res.data;
     },
+  });
+
+export const communityMapPointsQueryOptions = (params: {
+  category?: string;
+  tag?: string;
+  search?: string;
+  limit?: number;
+} = {}) =>
+  queryOptions<CommunityMapPoint[]>({
+    queryKey: ["community-entries", "map", params],
+    queryFn: async () => {
+      const res = await api.get<CommunityMapPoint[]>(`${BASE}/map`, { params });
+      return res.data;
+    },
+    staleTime: 15_000,
   });
 
 // --- Mutations ---
