@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
   emergencyFacilitiesQueryOptions,
@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { FacilityType } from "@/types/emergency";
-import { Search, MapPin, Loader2 } from "lucide-react";
+import { Search, MapPin, Loader2, Plus } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/emergency/")({
   component: EmergencyHubPage,
@@ -77,20 +77,28 @@ function EmergencyHubPage() {
       <section className="space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <h2 className="text-xl font-semibold">Emergency Facilities</h2>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleLocateMe}
-            disabled={locating}
-            className="gap-2 w-fit"
-          >
-            {locating ? (
-              <Loader2 size={14} className="animate-spin" />
-            ) : (
-              <MapPin size={14} />
-            )}
-            {userLocation ? "Location set ✓" : "Use My Location"}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLocateMe}
+              disabled={locating}
+              className="gap-2 w-fit"
+            >
+              {locating ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <MapPin size={14} />
+              )}
+              {userLocation ? "Location set ✓" : "Use My Location"}
+            </Button>
+            <Link to="/emergency/new">
+              <Button size="sm" className="gap-2 w-fit">
+                <Plus size={14} />
+                Add Facility
+              </Button>
+            </Link>
+          </div>
         </div>
 
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
