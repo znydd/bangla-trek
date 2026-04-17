@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     # Gemini LLM
     GEMINI_API_KEY: str
 
+    # MapTiler
+    MAPTILER_KEY: str
+
     # Environment
     IS_PRODUCTION: bool = False
 
