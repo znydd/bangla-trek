@@ -12,6 +12,7 @@ from app.models.transit_blueprint import TransitBlueprint, TransitBlueprintStep
 from app.models.transit_fare_contribution import TransitFareContribution
 from app.models.user_location import UserLocation
 from app.models.buddy_match import BuddyMatch
+from app.models.trip_budget import GroupTripBudget, GroupTripExpense
 
 __all__ = [
     "User", "CommunityEntry", "EntryPhoto", "EntryReview", "EntryReviewPhoto",
@@ -20,5 +21,6 @@ __all__ = [
     "EmergencyFacility",
     "TransitBlueprint", "TransitBlueprintStep",
     "TransitFareContribution",
-    "GroupTrip", "GroupTripMember", "UserLocation", "BuddyMatch"
+    "GroupTrip", "GroupTripMember", "UserLocation", "BuddyMatch",
+    "GroupTripBudget", "GroupTripExpense",
 ]

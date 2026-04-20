@@ -12,6 +12,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { MemberList } from "@/components/trips/MemberList";
 import { DestinationCombobox } from "@/components/trips/DestinationCombobox";
+import { BudgetTracker } from "@/components/trips/BudgetTracker";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -491,6 +492,9 @@ function TripDetailPage() {
         </h2>
         <MemberList members={trip.members} />
       </Card>
+
+      {/* Budget tracker (members only) */}
+      {isMember ? <BudgetTracker tripId={tripId} /> : null}
 
       {/* Overlapping public trips at the same destination */}
       {overlappingTrips && overlappingTrips.length > 0 && (
