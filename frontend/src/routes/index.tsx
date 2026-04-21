@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { currentUserQueryOptions, loginWithGoogle } from "@/services/auth.service";
+import { currentUserQueryOptions, loginWithGoogle, loginWithMock } from "@/services/auth.service";
+
 import { Button } from "@/components/ui/button";
 import { Compass, Map, ShieldCheck, Zap } from "lucide-react";
 
@@ -42,11 +43,15 @@ function HomePage() {
           <Button size="lg" onClick={loginWithGoogle} className="rounded-full px-8 h-12 text-base font-semibold shadow-lg shadow-green-600/20">
             Start Planning Now
           </Button>
+          <Button size="lg" variant="secondary" onClick={loginWithMock} className="rounded-full px-8 h-12 text-base font-semibold border-dashed">
+            Try Demo Login
+          </Button>
           <Button size="lg" variant="outline" render={<Link to="/community" />} className="rounded-full px-8 h-12 text-base font-semibold">
             <Map size={18} className="mr-2" />
             Explore Community
           </Button>
         </div>
+
 
         <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl w-full">
           <div className="p-6 rounded-2xl border bg-card text-left space-y-3">

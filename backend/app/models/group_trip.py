@@ -1,7 +1,7 @@
 import secrets
 import uuid
 from datetime import date, datetime
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
 from sqlalchemy import Date, DateTime, ForeignKey, String, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import UUID
@@ -11,6 +11,7 @@ from app.db.base import Base
 
 if TYPE_CHECKING:
     from .user import User
+    from .itinerary import Itinerary
 
 
 def _generate_invite_code() -> str:
@@ -46,11 +47,16 @@ class GroupTrip(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
+    itinerary_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("itineraries.id"), nullable=True
+    )
+
     # Relationships
     creator: Mapped["User"] = relationship("User", foreign_keys=[creator_id])
     members: Mapped[List["GroupTripMember"]] = relationship(
         "GroupTripMember", back_populates="trip", cascade="all, delete-orphan"
     )
+    itinerary: Mapped[Optional["Itinerary"]] = relationship("Itinerary")
 
 
 class GroupTripMember(Base):

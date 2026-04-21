@@ -3,7 +3,7 @@ import { queryOptions } from "@tanstack/react-query";
 
 export interface Notification {
   id: string;
-  type: "group_join" | "travel_overlap" | "reminder" | "poll_result";
+  type: "group_join" | "travel_overlap" | "reminder" | "poll_result" | "seasonal_warning";
   title: string;
   content: string;
   link_url?: string;

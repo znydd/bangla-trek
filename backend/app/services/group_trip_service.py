@@ -175,6 +175,30 @@ class GroupTripService:
         self.db.add(member)
         self.db.commit()
         self.db.refresh(trip)
+
+        # Notify owner via Messaging API
+        try:
+            from app.services.messaging_service import MessagingService
+            messaging = MessagingService(self.db)
+            user = self.db.query(User).filter(User.id == user_id).first()
+            if user:
+                messaging.notify_group_join(
+                    target_user_id=trip.creator_id,
+                    trip_id=trip.id,
+                    trip_title=trip.title,
+                    joiner_name=user.name
+                )
+            
+            # Also check for travel overlaps for the joiner
+            from app.services.buddy_matching_service import BuddyMatchingService
+            buddy_service = BuddyMatchingService(self.db)
+            buddy_service.notify_overlaps_for_user(user_id)
+            
+        except Exception as e:
+            # Don't fail the join if notification fails
+            import logging
+            logging.getLogger(__name__).error(f"Failed to send join notification: {e}")
+
         return trip
 
     def leave_trip(self, trip_id: uuid.UUID, user_id: uuid.UUID) -> None:

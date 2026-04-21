@@ -5,6 +5,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PlannerFarePanel } from "@/components/transit-fares/PlannerFarePanel";
+import ChatPanel from "@/components/chat/ChatPanel";
+import SeasonalWarnings from "@/components/chat/SeasonalWarnings";
 import {
   ArrowLeft,
   MapPin,
@@ -12,7 +14,10 @@ import {
   Wallet,
   Loader2,
   BedDouble,
+  Bot,
+  Compass,
 } from "lucide-react";
+
 import { useState } from "react";
 
 export const Route = createFileRoute("/_authenticated/planner/$itineraryId/")({
@@ -78,166 +83,211 @@ function ItineraryViewPage() {
   const dayCost = dayActivities.reduce((sum, a) => sum + a.estimated_cost, 0);
 
   return (
-    <div className="container mx-auto py-8 px-4 space-y-8">
+    <div className="container mx-auto py-8 px-4 space-y-8 pb-32">
       {/* Navigation */}
       <div className="flex items-center justify-between">
         <Button variant="ghost" size="sm" render={<Link to="/planner" />}>
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to Planner
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          render={
-            <Link
-              to="/planner/$itineraryId/accommodations"
-              params={{ itineraryId }}
-            />
-          }
-        >
-          <BedDouble className="mr-2 h-4 w-4" /> Accommodations
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            render={
+              <a href={`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/v1/itineraries/${itineraryId}/export`} target="_blank" rel="noreferrer">
+                <Compass className="mr-2 h-4 w-4" /> Download PDF
+              </a>
+            }
+          />
+
+          <Button
+            variant="outline"
+            size="sm"
+            render={
+              <Link
+                to="/planner/$itineraryId/accommodations"
+                params={{ itineraryId }}
+              />
+            }
+          >
+            <BedDouble className="mr-2 h-4 w-4" /> Accommodations
+          </Button>
+        </div>
+
       </div>
 
-      {/* Header */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-3 flex-wrap">
-          <h1 className="text-3xl font-bold tracking-tight">
-            {itinerary.destination}
-          </h1>
-          <Badge variant="secondary">{itinerary.travel_style}</Badge>
-          <Badge variant="outline">{itinerary.group_type}</Badge>
-        </div>
-        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <Clock className="h-4 w-4" />
-            {itinerary.duration_days} day{itinerary.duration_days > 1 ? "s" : ""}
-          </span>
-          <span className="flex items-center gap-1">
-            <Wallet className="h-4 w-4" />
-            Budget: ৳{itinerary.budget.toLocaleString()}
-          </span>
-          <span className="flex items-center gap-1">
-            <Wallet className="h-4 w-4" />
-            Estimated Total: ৳{totalCost.toLocaleString()}
-          </span>
-        </div>
-        {itinerary.interests.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {itinerary.interests.map((interest) => (
-              <Badge key={interest} variant="outline" className="text-xs">
-                {interest}
-              </Badge>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
+          {/* Header */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-3xl font-bold tracking-tight">
+                {itinerary.destination}
+              </h1>
+              <Badge variant="secondary">{itinerary.travel_style}</Badge>
+              <Badge variant="outline">{itinerary.group_type}</Badge>
+            </div>
+            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <Clock className="h-4 w-4" />
+                {itinerary.duration_days} day{itinerary.duration_days > 1 ? "s" : ""}
+              </span>
+              <span className="flex items-center gap-1">
+                <Wallet className="h-4 w-4" />
+                Budget: ৳{itinerary.budget.toLocaleString()}
+              </span>
+              <span className="flex items-center gap-1">
+                <Wallet className="h-4 w-4" />
+                Estimated Total: ৳{totalCost.toLocaleString()}
+              </span>
+            </div>
+            {itinerary.interests.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {itinerary.interests.map((interest) => (
+                  <Badge key={interest} variant="outline" className="text-xs">
+                    {interest}
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Seasonal Intelligence */}
+          <SeasonalWarnings destination={itinerary.destination} />
+
+          {/* Day Tabs */}
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {dayNumbers.map((day) => (
+              <button
+                key={day}
+                onClick={() => setActiveDay(day)}
+                className={`
+                  px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap
+                  transition-colors cursor-pointer
+                  ${activeDay === day
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground hover:bg-accent"
+                  }
+                `}
+              >
+                Day {day}
+              </button>
             ))}
           </div>
-        )}
-      </div>
 
-      {/* Day Tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-2">
-        {dayNumbers.map((day) => (
-          <button
-            key={day}
-            onClick={() => setActiveDay(day)}
-            className={`
-              px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap
-              transition-colors cursor-pointer
-              ${activeDay === day
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground hover:bg-accent"
-              }
-            `}
-          >
-            Day {day}
-          </button>
-        ))}
-      </div>
+          {/* Day Cost Summary */}
+          <div className="flex items-center justify-between text-sm text-muted-foreground border-b pb-3">
+            <span className="font-medium">Day {activeDay} Activities</span>
+            <span>Day cost: ৳{dayCost.toLocaleString()}</span>
+          </div>
 
-      {/* Day Cost Summary */}
-      <div className="flex items-center justify-between text-sm text-muted-foreground border-b pb-3">
-        <span className="font-medium">Day {activeDay} Activities</span>
-        <span>Day cost: ৳{dayCost.toLocaleString()}</span>
-      </div>
-
-      {/* Timeline */}
-      <div className="space-y-4">
-        {dayActivities.map((activity, idx) => (
-          <div key={activity.id} className="flex gap-4">
-            {/* Time column */}
-            <div className="w-20 shrink-0 text-right pt-4">
-              <p className="text-sm font-mono font-semibold">{activity.start_time}</p>
-              <p className="text-xs text-muted-foreground font-mono">
-                {activity.end_time}
-              </p>
-            </div>
-
-            {/* Timeline line */}
-            <div className="flex flex-col items-center">
-              <div className="w-3 h-3 rounded-full bg-primary mt-5 shrink-0" />
-              {idx < dayActivities.length - 1 && (
-                <div className="w-0.5 flex-1 bg-border" />
-              )}
-            </div>
-
-            {/* Content */}
-            <Card className="flex-1 p-4 space-y-2">
-              <div className="flex items-start justify-between gap-2">
-                <div className="space-y-1">
-                  <h3 className="font-semibold">
-                    {CATEGORY_EMOJI[activity.category] || "📍"} {activity.title}
-                  </h3>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${CATEGORY_COLORS[activity.category] || CATEGORY_COLORS.activity
-                        }`}
-                    >
-                      {activity.category}
-                    </span>
-                    <span className="text-xs text-muted-foreground flex items-center gap-1">
-                      <MapPin className="h-3 w-3" />
-                      {activity.location}
-                    </span>
-                  </div>
+          {/* Timeline */}
+          <div className="space-y-4">
+            {dayActivities.map((activity, idx) => (
+              <div key={activity.id} className="flex gap-4">
+                {/* Time column */}
+                <div className="w-20 shrink-0 text-right pt-4">
+                  <p className="text-sm font-mono font-semibold">{activity.start_time}</p>
+                  <p className="text-xs text-muted-foreground font-mono">
+                    {activity.end_time}
+                  </p>
                 </div>
-                <Badge variant="secondary" className="shrink-0">
-                  ৳{activity.estimated_cost.toLocaleString()}
-                </Badge>
+
+                {/* Timeline line */}
+                <div className="flex flex-col items-center">
+                  <div className="w-3 h-3 rounded-full bg-primary mt-5 shrink-0" />
+                  {idx < dayActivities.length - 1 && (
+                    <div className="w-0.5 flex-1 bg-border" />
+                  )}
+                </div>
+
+                {/* Content */}
+                <Card className="flex-1 p-4 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="space-y-1">
+                      <h3 className="font-semibold">
+                        {CATEGORY_EMOJI[activity.category] || "📍"} {activity.title}
+                      </h3>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span
+                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${CATEGORY_COLORS[activity.category] || CATEGORY_COLORS.activity
+                            }`}
+                        >
+                          {activity.category}
+                        </span>
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <MapPin className="h-3 w-3" />
+                          {activity.location}
+                        </span>
+                      </div>
+                    </div>
+                    <Badge variant="secondary" className="shrink-0">
+                      ৳{activity.estimated_cost.toLocaleString()}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {activity.description}
+                  </p>
+                  {activity.category === "transport" && (
+                    <PlannerFarePanel
+                      origin={
+                        idx > 0
+                          ? dayActivities[idx - 1].location
+                          : itinerary.destination
+                      }
+                      destination={activity.location}
+                    />
+                  )}
+                </Card>
               </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {activity.description}
-              </p>
-              {activity.category === "transport" && (
-                <PlannerFarePanel
-                  origin={
-                    idx > 0
-                      ? dayActivities[idx - 1].location
-                      : itinerary.destination
-                  }
-                  destination={activity.location}
-                />
-              )}
-            </Card>
+            ))}
           </div>
-        ))}
+
+          {/* Total Summary */}
+          <Card className="p-4 bg-primary/5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-semibold">Total Estimated Cost</p>
+                <p className="text-sm text-muted-foreground">
+                  For {itinerary.duration_days} day{itinerary.duration_days > 1 ? "s" : ""} in{" "}
+                  {itinerary.destination}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-2xl font-bold">৳{totalCost.toLocaleString()}</p>
+                <p className="text-sm text-muted-foreground">
+                  Budget: ৳{itinerary.budget.toLocaleString()}
+                </p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        <div className="hidden lg:block space-y-6">
+          <Card className="p-6 sticky top-8">
+            <h3 className="font-bold mb-4 flex items-center gap-2">
+              <Bot className="h-5 w-5 text-primary" />
+              AI Assistant
+            </h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Need to refine your trip? I can help you adjust the budget, add specific spots, or rearrange your schedule.
+            </p>
+            <div className="space-y-2">
+              {["Add more nature", "Lower the budget", "Add local food"].map((hint) => (
+                <Badge key={hint} variant="outline" className="cursor-pointer hover:bg-accent block w-fit">
+                  "{hint}"
+                </Badge>
+              ))}
+            </div>
+          </Card>
+        </div>
       </div>
 
-      {/* Total Summary */}
-      <Card className="p-4 bg-primary/5">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-semibold">Total Estimated Cost</p>
-            <p className="text-sm text-muted-foreground">
-              For {itinerary.duration_days} day{itinerary.duration_days > 1 ? "s" : ""} in{" "}
-              {itinerary.destination}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="text-2xl font-bold">৳{totalCost.toLocaleString()}</p>
-            <p className="text-sm text-muted-foreground">
-              Budget: ৳{itinerary.budget.toLocaleString()}
-            </p>
-          </div>
-        </div>
-      </Card>
+      {/* Floating Chat Panel */}
+      <ChatPanel 
+        itineraryId={itineraryId} 
+        destination={itinerary.destination} 
+      />
     </div>
   );
 }

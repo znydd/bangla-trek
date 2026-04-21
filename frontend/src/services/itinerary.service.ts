@@ -38,3 +38,21 @@ export const generateItinerary = async (payload: GenerateItineraryPayload) => {
 export const deleteItinerary = async (id: string) => {
   await api.delete(`${BASE}/${id}`);
 };
+
+export const exportItineraryPdf = async (itineraryId: string) => {
+  const response = await api.get(`${BASE}/${itineraryId}/export`, {
+    responseType: "blob",
+  });
+  
+  // Create a link element, hide it, direct it to the blob, and click it
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", `itinerary_${itineraryId}.pdf`);
+  document.body.appendChild(link);
+  link.click();
+  
+  // Clean up
+  link.parentNode?.removeChild(link);
+  window.URL.revokeObjectURL(url);
+};

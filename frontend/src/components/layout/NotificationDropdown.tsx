@@ -53,8 +53,11 @@ export default function NotificationDropdown() {
         return <AlertTriangle size={16} className="text-red-500" />;
       case "poll_result":
         return <MessageSquare size={16} className="text-emerald-500" />;
+      case "seasonal_warning":
+        return <AlertTriangle size={16} className="text-orange-500" />;
       default:
         return <Bell size={16} />;
+
     }
   };
 

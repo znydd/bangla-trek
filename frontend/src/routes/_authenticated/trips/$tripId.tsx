@@ -20,7 +20,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import GroupPolls from "@/components/group/GroupPolls";
+import GroupActivityFeed from "@/components/group/GroupActivityFeed";
+import SharedItineraryView from "@/components/group/SharedItineraryView";
 import { toast } from "sonner";
 import {
   MapPin,
@@ -39,6 +42,11 @@ import {
   Pencil,
   X,
   Save,
+  BarChart3,
+  ListTodo,
+  Activity,
+  CreditCard,
+  Info,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
@@ -209,8 +217,8 @@ function TripDetailPage() {
       </Button>
 
       {/* Trip header */}
-      <Card className="p-6 space-y-4">
-        <div className="h-2 -mt-6 -mx-6 mb-4 bg-gradient-to-r from-green-500 to-emerald-400 rounded-t-xl" />
+      <Card className="p-6 space-y-4 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-green-500 to-emerald-400" />
 
         {editing ? (
           <form onSubmit={handleEditSubmit} className="space-y-4">
@@ -393,16 +401,16 @@ function TripDetailPage() {
               <p className="text-muted-foreground">{trip.description}</p>
             )}
 
-            <div className="flex flex-wrap gap-4 text-sm">
-              <div className="flex items-center gap-1.5 text-muted-foreground">
-                <Calendar size={14} />
-                <span>
+            <div className="flex flex-wrap gap-4 text-sm pt-2">
+              <div className="flex items-center gap-1.5 text-muted-foreground bg-muted/30 px-2 py-1 rounded-md border">
+                <Calendar size={14} className="text-primary" />
+                <span className="font-medium text-foreground">
                   {startDate} - {endDate}
                 </span>
               </div>
-              <div className="flex items-center gap-1.5 text-muted-foreground">
-                <Users size={14} />
-                <span>
+              <div className="flex items-center gap-1.5 text-muted-foreground bg-muted/30 px-2 py-1 rounded-md border">
+                <Users size={14} className="text-primary" />
+                <span className="font-medium text-foreground">
                   {trip.member_count} member{trip.member_count !== 1 ? "s" : ""}
                 </span>
               </div>
@@ -410,18 +418,16 @@ function TripDetailPage() {
           </>
         )}
 
-        {!editing && <Separator />}
-
-        {isMember ? (
-          <>
-            {/* Invite link — only visible to members */}
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Invite Link</p>
-              <div className="flex items-center gap-2">
-                <code className="flex-1 text-xs bg-muted px-3 py-2 rounded-md truncate">
-                  {window.location.origin}/trips/join/{trip.invite_code}
-                </code>
-                <Button variant="outline" size="sm" onClick={copyInviteLink}>
+        {isMember && !editing && (
+          <div className="flex flex-col gap-2 pt-4 border-t mt-4">
+             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Invite Your Crew</p>
+             <div className="flex items-center gap-2 pt-1">
+                <div className="flex-1 flex items-center gap-2 bg-muted/50 px-3 py-2 rounded-lg border border-dashed border-muted-foreground/30 overflow-hidden">
+                  <code className="text-xs text-muted-foreground truncate font-mono">
+                    {window.location.origin}/trips/join/{trip.invite_code}
+                  </code>
+                </div>
+                <Button variant="outline" size="icon" onClick={copyInviteLink} className="shrink-0 h-10 w-10">
                   {copied ? (
                     <Check className="h-4 w-4 text-green-600" />
                   ) : (
@@ -429,117 +435,197 @@ function TripDetailPage() {
                   )}
                 </Button>
               </div>
-            </div>
+          </div>
+        )}
+      </Card>
 
-            {/* Member actions */}
-            <div className="flex gap-2 pt-2">
-              {!isOwner && (
+      <Tabs defaultValue="overview" className="w-full">
+        <div className="overflow-x-auto pb-1 no-scrollbar mb-4">
+          <TabsList className="w-full justify-start h-auto p-1 bg-muted/50 border backdrop-blur-sm sticky top-0 z-20">
+            <TabsTrigger value="overview" className="gap-2 py-2 px-4 rounded-md data-[state=active]:shadow-sm">
+              <Info size={16} />
+              <span className="hidden sm:inline">Overview</span>
+            </TabsTrigger>
+            <TabsTrigger value="itinerary" className="gap-2 py-2 px-4 rounded-md data-[state=active]:shadow-sm">
+              <ListTodo size={16} />
+              <span className="hidden sm:inline">Itinerary</span>
+            </TabsTrigger>
+            <TabsTrigger value="polls" className="gap-2 py-2 px-4 rounded-md data-[state=active]:shadow-sm">
+              <BarChart3 size={16} />
+              <span className="hidden sm:inline">Polls</span>
+            </TabsTrigger>
+            <TabsTrigger value="activity" className="gap-2 py-2 px-4 rounded-md data-[state=active]:shadow-sm">
+              <Activity size={16} />
+              <span className="hidden sm:inline">Activity</span>
+            </TabsTrigger>
+            <TabsTrigger value="budget" className="gap-2 py-2 px-4 rounded-md data-[state=active]:shadow-sm">
+              <CreditCard size={16} />
+              <span className="hidden sm:inline">Budget</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
+        <TabsContent value="overview" className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          {/* Members */}
+          <Card className="p-6 space-y-4">
+            <div className="flex items-center justify-between border-b pb-4">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <Users size={18} className="text-primary" />
+                Members ({trip.members.length})
+              </h2>
+            </div>
+            <MemberList members={trip.members} />
+          </Card>
+
+          {/* Overlapping public trips */}
+          {overlappingTrips && overlappingTrips.length > 0 && (
+            <Card className="p-6 space-y-4 border-emerald-500/10 bg-emerald-500/[0.02]">
+              <div className="flex items-center justify-between border-b border-emerald-500/10 pb-4">
+                <h2 className="text-lg font-semibold flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
+                  <UserSearch size={18} />
+                  Other trips to {trip.destination}
+                </h2>
+              </div>
+              <p className="text-sm text-muted-foreground italic">
+                Connect with travelers heading to the same spot during your dates!
+              </p>
+              <div className="grid gap-3">
+                {overlappingTrips.map((t) => (
+                  <Link
+                    key={t.id}
+                    to="/trips/$tripId"
+                    params={{ tripId: t.id }}
+                    className="flex items-center justify-between gap-3 p-4 rounded-xl border bg-card hover:bg-muted/50 hover:border-primary/30 transition-all group shadow-sm"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold truncate group-hover:text-primary transition-colors">{t.title}</p>
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-muted-foreground mt-2">
+                        <span className="flex items-center gap-1 bg-muted px-1.5 py-0.5 rounded">
+                          <Calendar size={10} />
+                          {new Date(t.start_date).toLocaleDateString()} - {new Date(t.end_date).toLocaleDateString()}
+                        </span>
+                        <span className="flex items-center gap-1 bg-muted px-1.5 py-0.5 rounded">
+                          <Users size={10} />
+                          {t.member_count}
+                        </span>
+                        {t.creator_name && (
+                          <span className="font-medium text-primary/70">@{t.creator_name}</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all">
+                      <ArrowLeft size={16} className="rotate-180" />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </Card>
+          )}
+
+          {/* Danger Zone */}
+          {isMember && (
+            <div className="flex items-center justify-center pt-8">
+              {!isOwner ? (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => leaveMutation.mutate()}
                   disabled={leaveMutation.isPending}
+                  className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 border-dashed"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
                   Leave Trip
                 </Button>
-              )}
-              {isOwner && (
+              ) : (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    if (confirm("Are you sure you want to delete this trip?")) {
+                    if (confirm("Are you sure you want to delete this entire trip? This cannot be undone.")) {
                       deleteMutation.mutate();
                     }
                   }}
                   disabled={deleteMutation.isPending}
-                  className="text-destructive hover:text-destructive"
+                  className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 border-dashed"
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
                   Delete Trip
                 </Button>
               )}
             </div>
-          </>
-        ) : (
-          /* Join button for non-members viewing a public trip */
-          <Button
-            className="w-full"
+          )}
+        </TabsContent>
+
+        <TabsContent value="itinerary" className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <Card className="p-6">
+            {!trip.itinerary_id ? (
+              <div className="text-center py-12 space-y-4">
+                <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center mx-auto text-muted-foreground">
+                  <ListTodo size={32} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold">No Itinerary Linked</h3>
+                  <p className="text-sm text-muted-foreground max-w-sm mx-auto mt-1">
+                    This group trip doesn't have a collaborative itinerary yet. The trip creator can link one from the Trip Planner.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <SharedItineraryView itineraryId={trip.itinerary_id} />
+            )}
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="polls" className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <Card className="p-6">
+            <GroupPolls tripId={tripId} />
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="activity" className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <Card className="p-6">
+            <h2 className="text-xl font-bold flex items-center gap-2 mb-6">
+              <Activity className="h-5 w-5 text-primary" />
+              Trip Activity
+            </h2>
+            <GroupActivityFeed tripId={tripId} />
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="budget" className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+          {isMember ? (
+            <BudgetTracker tripId={tripId} />
+          ) : (
+            <Card className="p-12 text-center text-muted-foreground shadow-sm">
+              Budget tracking is only visible to trip members.
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
+
+      {!isMember && (
+        <Card className="p-6 mt-12 border-primary/30 bg-primary/5 text-center space-y-4 shadow-lg animate-in zoom-in duration-500">
+           <h3 className="text-lg font-bold">Interested in joining?</h3>
+           <p className="text-sm text-muted-foreground max-w-md mx-auto">
+             Join this trip to collaborate on the itinerary, vote in polls, and track shared expenses!
+           </p>
+           <Button
+            className="w-full max-w-xs h-12 text-md font-bold shadow-md"
             onClick={() => joinMutation.mutate()}
             disabled={joinMutation.isPending}
           >
             {joinMutation.isPending ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                 Joining...
               </>
             ) : (
               <>
-                <UsersRound className="mr-2 h-4 w-4" />
+                <UsersRound className="mr-2 h-5 w-5" />
                 Join This Trip
               </>
             )}
           </Button>
-        )}
-      </Card>
-
-      {/* Members */}
-      <Card className="p-6 space-y-4">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
-          <Users size={18} />
-          Members ({trip.members.length})
-        </h2>
-        <MemberList members={trip.members} />
-      </Card>
-
-      {/* Budget tracker (members only) */}
-      {isMember ? <BudgetTracker tripId={tripId} /> : null}
-
-      {/* Overlapping public trips at the same destination */}
-      {overlappingTrips && overlappingTrips.length > 0 && (
-        <Card className="p-6 space-y-4">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <UserSearch size={18} />
-            Other trips to {trip.destination}
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Public trips with overlapping dates at the same destination.
-          </p>
-          <div className="space-y-2">
-            {overlappingTrips.map((t) => (
-              <Link
-                key={t.id}
-                to="/trips/$tripId"
-                params={{ tripId: t.id }}
-                className="flex items-center justify-between gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors group"
-              >
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{t.title}</p>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
-                    <span className="flex items-center gap-1">
-                      <Calendar size={12} />
-                      {new Date(t.start_date).toLocaleDateString()} -{" "}
-                      {new Date(t.end_date).toLocaleDateString()}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Users size={12} />
-                      {t.member_count} member{t.member_count !== 1 ? "s" : ""}
-                    </span>
-                  </div>
-                  {t.creator_name && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      by {t.creator_name}
-                    </p>
-                  )}
-                </div>
-                <ArrowLeft
-                  size={14}
-                  className="shrink-0 text-muted-foreground group-hover:text-foreground transition-colors rotate-180"
-                />
-              </Link>
-            ))}
-          </div>
         </Card>
       )}
     </div>

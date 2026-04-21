@@ -94,6 +94,20 @@ class CollaborationService:
             {"poll_id": str(poll.id)}
         )
         
+        # Notify via Messaging API
+        try:
+            from app.services.messaging_service import MessagingService
+            messaging = MessagingService(self.db)
+            creator = self.db.query(User).filter(User.id == user_id).first()
+            messaging.notify_poll_result(
+                trip_id=trip_id,
+                title=poll.title,
+                creator_name=creator.name if creator else "An owner"
+            )
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f"Failed to send poll notification: {e}")
+
         self.db.commit()
         self.db.refresh(poll)
         return poll

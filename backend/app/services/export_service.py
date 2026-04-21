@@ -132,13 +132,47 @@ class ExportService:
             elements.append(Paragraph("No specific infrastructure data available for this remote area.", self.styles['Normal']))
 
         elements.append(Spacer(1, 0.3 * inch))
+        
+        # --- Geo-Location & Offline Maps ---
+        elements.append(Paragraph("Geo-Location & Offline Mapping", self.styles['Heading2']))
+        elements.append(Paragraph("GPS coordinates for key locations in this itinerary. You can enter these into any offline map app (like Organic Maps or Google Maps Offline).", self.styles['Normal']))
+        elements.append(Spacer(1, 0.1 * inch))
+        
+        geo_data = [["Location", "Latitude", "Longitude", "Type"]]
+        # Add activities with locations
+        for act in activities[:5]: # Include first 5 main stops
+            # We don't have lat/lon for activities yet, so we'll use place name
+            geo_data.append([act.location[:30], "N/A", "N/A", "Activity Stop"])
+            
+        # Add emergency facilities (which DO have lat/lon)
+        if emergency:
+            for f in emergency[:3]:
+                geo_data.append([f.name[:30], str(f.latitude)[:8], str(f.longitude)[:8], f.facility_type.capitalize()])
+                
+        if len(geo_data) > 1:
+            gt = Table(geo_data, colWidths=[2.5*inch, 1*inch, 1*inch, 1*inch])
+            gt.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#f1f5f9")),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+                ('FONTSIZE', (0, 0), (-1, -1), 9)
+            ]))
+            elements.append(gt)
+            
+        elements.append(Spacer(1, 0.2 * inch))
+        elements.append(Paragraph("Tip: Download the 'Bangladesh' offline map in Google Maps before starting your journey to ensure these locations are visible without data.", self.styles['Italic']))
+
+        elements.append(Spacer(1, 0.3 * inch))
         elements.append(Paragraph("Emergency Support", self.styles['Heading2']))
         if emergency:
             for f in emergency[:5]: # Top 5 nearest
-                elements.append(Paragraph(f"<b>{f.name}</b> ({f.category.capitalize()})", self.styles['Normal']))
-                elements.append(Paragraph(f"Location: {f.location} | Phone: {f.phone or 'N/A'}", self.styles['Normal']))
+                elements.append(Paragraph(f"<b>{f.name}</b> ({f.facility_type.capitalize()})", self.styles['Normal']))
+                elements.append(Paragraph(f"Address: {f.address} | Phone: {f.phone_number or 'N/A'}", self.styles['Normal']))
         else:
             elements.append(Paragraph("Check local resources upon arrival.", self.styles['Normal']))
+
 
         # 3. Finish
         doc.build(elements)
@@ -160,9 +194,16 @@ class ExportService:
         return list(self.db.execute(query).scalars().all())
 
     def _get_relevant_metrics(self, destination: str) -> List[NomadMetric]:
-        query = select(NomadMetric).where(NomadMetric.location.ilike(f"%{destination}%")).limit(5)
+        from app.models.community_entry import CommunityEntry
+        query = (
+            select(NomadMetric)
+            .join(CommunityEntry)
+            .where(CommunityEntry.location.ilike(f"%{destination}%"))
+            .limit(5)
+        )
         return list(self.db.execute(query).scalars().all())
 
     def _get_emergency_resources(self, destination: str) -> List[EmergencyFacility]:
-        query = select(EmergencyFacility).where(EmergencyFacility.location.ilike(f"%{destination}%")).limit(5)
+        query = select(EmergencyFacility).where(EmergencyFacility.district.ilike(f"%{destination}%")).limit(5)
         return list(self.db.execute(query).scalars().all())
+

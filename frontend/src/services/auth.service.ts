@@ -9,6 +9,11 @@ export const loginWithGoogle = () => {
   window.location.href = `${API_BASE}/api/v1/auth/google`;
 };
 
+export const loginWithMock = () => {
+  window.location.href = `${API_BASE}/api/v1/auth/mock-login`;
+};
+
+
 // Clears httpOnly cookies server-side then redirects to /login
 export const logout = async () => {
   await api.post("/api/v1/auth/logout");

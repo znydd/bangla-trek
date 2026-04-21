@@ -38,8 +38,6 @@ class MessagingService:
             link_url=link_url
         )
         self.db.add(notification)
-        self.db.commit()
-        self.db.refresh(notification)
         return notification
 
     def notify_group_join(self, target_user_id: uuid.UUID, trip_id: uuid.UUID, trip_title: str, joiner_name: str):
@@ -90,4 +88,47 @@ class MessagingService:
                 user.email,
                 f"Daily Reminder: {itinerary_title}",
                 f"Hi {user.name},\n\nReady for today's adventure? Here's your itinerary for {itinerary_title}: {link_url}"
+            )
+
+    def notify_poll_result(self, trip_id: uuid.UUID, title: str, creator_name: str, winner_text: Optional[str] = None):
+        """Notify all trip members about a poll result or new poll."""
+        from app.models.group_trip import GroupTripMember
+        
+        # Get all members of the trip
+        members = self.db.query(GroupTripMember).filter(GroupTripMember.trip_id == trip_id).all()
+        
+        content = f"New update on poll '{title}' by {creator_name}."
+        if winner_text:
+            content = f"The poll '{title}' has concluded! Winner: {winner_text}."
+            
+        for member in members:
+            self.create_notification(
+                member.user_id, 
+                "poll_result", 
+                "Poll Update", 
+                content, 
+                f"/trips/{trip_id}?tab=polls"
+            )
+            
+            # Send email to member
+            user = self.db.query(User).filter(User.id == member.user_id).first()
+            if user and user.email:
+                self._send_email_sim(
+                    user.email,
+                    f"Poll Update: {title}",
+                    f"Hello {user.name},\n\n{content} Check out the latest results here: /trips/{trip_id}?tab=polls"
+                )
+    def notify_seasonal_warning(self, user_id: uuid.UUID, destination: str, warning_title: str, warning_content: str):
+        """Notify user about seasonal weather or monsoon warnings."""
+        title = f"Seasonal Alert: {warning_title}"
+        content = f"Important weather update for your trip to {destination}: {warning_content}"
+        
+        self.create_notification(user_id, "seasonal_warning", title, content)
+        
+        user = self.db.query(User).filter(User.id == user_id).first()
+        if user and user.email:
+            self._send_email_sim(
+                user.email,
+                f"Weather Alert: {destination}",
+                f"Hi {user.name},\n\nWe have important seasonal information for your trip to {destination}.\n\n{warning_title}: {warning_content}"
             )
