@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     # Gemini LLM
     GEMINI_API_KEY: str
 
+    # Groq LLM
+    GROQ_API_KEY: str | None = None
+
     # MapTiler
     MAPTILER_KEY: str
     #BariKoi

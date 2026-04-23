@@ -16,10 +16,18 @@ from app.schemas.itinerary import ItineraryGenerateRequest
 from app.services.route_optimizer import RouteOptimizerService
 
 
-# ── Gemini client ──
+# ── LLM clients ──
 
-client = genai.Client(api_key=settings.GEMINI_API_KEY)
-MODEL = "gemini-2.0-flash-lite"
+gemini_client = genai.Client(api_key=settings.GEMINI_API_KEY)
+GEMINI_MODEL = "gemini-2.0-flash-lite"
+
+try:
+    import groq
+    groq_client = groq.Groq(api_key=settings.GROQ_API_KEY) if getattr(settings, "GROQ_API_KEY", None) else None
+except ImportError:
+    groq_client = None
+
+GROQ_MODEL = "llama-3.3-70b-versatile"
 
 
 def _build_prompt(
@@ -113,9 +121,14 @@ class ItineraryService:
         # 1. Fetch community entries for the destination
         community_data = self._get_community_data(request.destination)
 
-        # 2. Build prompt and call Gemini
+        # 2. Build prompt and call LLM
         prompt = _build_prompt(request, community_data)
-        activities_json = self._call_gemini(prompt)
+        
+        try:
+            activities_json = self._call_groq(prompt)
+        except Exception as e:
+            logger.warning("Groq failed, falling back to Gemini: %s", str(e))
+            activities_json = self._call_gemini(prompt)
 
         # 3. Save itinerary to DB
         itinerary = Itinerary(
@@ -261,9 +274,9 @@ class ItineraryService:
     def _call_gemini(self, prompt: str) -> list:
         """Call Gemini API and parse the JSON response."""
         try:
-            logger.info("Calling Gemini API with model: %s", MODEL)
-            response = client.models.generate_content(
-                model=MODEL,
+            logger.info("Calling Gemini API with model: %s", GEMINI_MODEL)
+            response = gemini_client.models.generate_content(
+                model=GEMINI_MODEL,
                 contents=prompt,
             )
             logger.info("Gemini API responded successfully")
@@ -277,6 +290,46 @@ class ItineraryService:
         # Clean up markdown code fences if present
         if text.startswith("```"):
             # Remove opening fence (```json or ```)
+            text = text.split("\n", 1)[1] if "\n" in text else text[3:]
+        if text.endswith("```"):
+            text = text[:-3].strip()
+
+        try:
+            activities = json.loads(text)
+        except json.JSONDecodeError:
+            logger.error("Failed to parse JSON: %s", text[:500])
+            raise ValueError(
+                "Failed to parse itinerary from AI response. Please try again."
+            )
+
+        if not isinstance(activities, list):
+            raise ValueError("AI response was not a list of activities.")
+
+        return activities
+
+    def _call_groq(self, prompt: str) -> list:
+        """Call Groq API and parse the JSON response."""
+        if not groq_client:
+            raise ValueError("Groq client is not initialized (missing API key or package).")
+            
+        try:
+            logger.info("Calling Groq API with model: %s", GROQ_MODEL)
+            response = groq_client.chat.completions.create(
+                model=GROQ_MODEL,
+                messages=[
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.7,
+            )
+            logger.info("Groq API responded successfully")
+        except Exception as e:
+            logger.error("Groq API error: %s", str(e))
+            raise ValueError(f"Groq AI service error: {str(e)}")
+
+        text = response.choices[0].message.content.strip()
+
+        # Clean up markdown code fences if present
+        if text.startswith("```"):
             text = text.split("\n", 1)[1] if "\n" in text else text[3:]
         if text.endswith("```"):
             text = text[:-3].strip()
