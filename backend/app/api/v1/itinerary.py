@@ -17,7 +17,7 @@ router = APIRouter(prefix="/itineraries", tags=["itineraries"])
 
 
 @router.post("/generate", response_model=ItineraryRead)
-def generate_itinerary(
+async def generate_itinerary(
     payload: ItineraryGenerateRequest,
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
@@ -25,7 +25,7 @@ def generate_itinerary(
     """Generate an AI-powered travel itinerary using Gemini and community data."""
     service = ItineraryService(db)
     try:
-        return service.generate_itinerary(uuid.UUID(user_id), payload)
+        return await service.generate_itinerary(uuid.UUID(user_id), payload)
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
 
