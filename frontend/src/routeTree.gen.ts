@@ -13,6 +13,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
+import { Route as AuthenticatedRouteOptimizerRouteImport } from './routes/_authenticated/route-optimizer'
 import { Route as AuthenticatedAuthenticatedRouteImport } from './routes/_authenticated/authenticated'
 import { Route as AuthenticatedTripsIndexRouteImport } from './routes/_authenticated/trips/index'
 import { Route as AuthenticatedTransitBlueprintsIndexRouteImport } from './routes/_authenticated/transit-blueprints/index'
@@ -53,6 +54,12 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRouteOptimizerRoute =
+  AuthenticatedRouteOptimizerRouteImport.update({
+    id: '/route-optimizer',
+    path: '/route-optimizer',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAuthenticatedRoute =
   AuthenticatedAuthenticatedRouteImport.update({
     id: '/authenticated',
@@ -178,6 +185,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/authenticated': typeof AuthenticatedAuthenticatedRoute
+  '/route-optimizer': typeof AuthenticatedRouteOptimizerRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/community/$entryId': typeof AuthenticatedCommunityEntryIdRoute
   '/community/new': typeof AuthenticatedCommunityNewRoute
@@ -203,6 +211,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/authenticated': typeof AuthenticatedAuthenticatedRoute
+  '/route-optimizer': typeof AuthenticatedRouteOptimizerRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/community/$entryId': typeof AuthenticatedCommunityEntryIdRoute
   '/community/new': typeof AuthenticatedCommunityNewRoute
@@ -230,6 +239,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
   '/_authenticated/authenticated': typeof AuthenticatedAuthenticatedRoute
+  '/_authenticated/route-optimizer': typeof AuthenticatedRouteOptimizerRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/_authenticated/community/$entryId': typeof AuthenticatedCommunityEntryIdRoute
   '/_authenticated/community/new': typeof AuthenticatedCommunityNewRoute
@@ -257,6 +267,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/authenticated'
+    | '/route-optimizer'
     | '/auth/callback'
     | '/community/$entryId'
     | '/community/new'
@@ -282,6 +293,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/authenticated'
+    | '/route-optimizer'
     | '/auth/callback'
     | '/community/$entryId'
     | '/community/new'
@@ -308,6 +320,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/login'
     | '/_authenticated/authenticated'
+    | '/_authenticated/route-optimizer'
     | '/auth/callback'
     | '/_authenticated/community/$entryId'
     | '/_authenticated/community/new'
@@ -366,6 +379,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth/callback'
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/route-optimizer': {
+      id: '/_authenticated/route-optimizer'
+      path: '/route-optimizer'
+      fullPath: '/route-optimizer'
+      preLoaderRoute: typeof AuthenticatedRouteOptimizerRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/authenticated': {
       id: '/_authenticated/authenticated'
@@ -512,6 +532,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteChildren {
   AuthenticatedAuthenticatedRoute: typeof AuthenticatedAuthenticatedRoute
+  AuthenticatedRouteOptimizerRoute: typeof AuthenticatedRouteOptimizerRoute
   AuthenticatedCommunityEntryIdRoute: typeof AuthenticatedCommunityEntryIdRoute
   AuthenticatedCommunityNewRoute: typeof AuthenticatedCommunityNewRoute
   AuthenticatedEmergencyNewRoute: typeof AuthenticatedEmergencyNewRoute
@@ -535,6 +556,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAuthenticatedRoute: AuthenticatedAuthenticatedRoute,
+  AuthenticatedRouteOptimizerRoute: AuthenticatedRouteOptimizerRoute,
   AuthenticatedCommunityEntryIdRoute: AuthenticatedCommunityEntryIdRoute,
   AuthenticatedCommunityNewRoute: AuthenticatedCommunityNewRoute,
   AuthenticatedEmergencyNewRoute: AuthenticatedEmergencyNewRoute,
