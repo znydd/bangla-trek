@@ -13,6 +13,10 @@ from app.services.auth_service import AuthService
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
+def auth_cookie_samesite() -> str:
+    return "none" if settings.IS_PRODUCTION else "lax"
+
+
 @router.get("/google")
 async def google_login():
     """Redirect to Google consent screen."""
@@ -47,7 +51,7 @@ async def google_callback(code: str, db: Session = Depends(get_db)):
         value=access_token,
         httponly=True,
         secure=settings.IS_PRODUCTION,
-        samesite="lax",
+        samesite=auth_cookie_samesite(),
         max_age=30 * 60,  # 30 minutes
         path="/",
     )
@@ -56,7 +60,7 @@ async def google_callback(code: str, db: Session = Depends(get_db)):
         value=refresh_token,
         httponly=True,
         secure=settings.IS_PRODUCTION,
-        samesite="lax",
+        samesite=auth_cookie_samesite(),
         max_age=7 * 24 * 60 * 60,  # 7 days
         path="/api/v1/auth/refresh",
     )
@@ -96,7 +100,7 @@ async def refresh_token(request: Request, db: Session = Depends(get_db)):
         value=new_access_token,
         httponly=True,
         secure=settings.IS_PRODUCTION,
-        samesite="lax",
+        samesite=auth_cookie_samesite(),
         max_age=30 * 60,
         path="/",
     )
