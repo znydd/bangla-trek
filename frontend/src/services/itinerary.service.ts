@@ -7,6 +7,7 @@ import type {
 } from "@/types/itinerary";
 
 const BASE = "/api/v1/itineraries";
+const LIST_BASE = `${BASE}/`;
 
 // --- Query options ---
 
@@ -14,7 +15,7 @@ export const userItinerariesQueryOptions = () =>
   queryOptions<ItineraryListItem[]>({
     queryKey: ["itineraries"],
     queryFn: async () => {
-      const res = await api.get<ItineraryListItem[]>(BASE);
+      const res = await api.get<ItineraryListItem[]>(LIST_BASE);
       return res.data;
     },
   });

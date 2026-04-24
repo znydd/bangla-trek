@@ -10,6 +10,7 @@ import type {
 } from "@/types/community";
 
 const BASE = "/api/v1/community-entries";
+const LIST_BASE = `${BASE}/`;
 
 // --- Query options ---
 
@@ -19,7 +20,7 @@ export const communityEntriesQueryOptions = (
   queryOptions<PaginatedResponse<CommunityEntry>>({
     queryKey: ["community-entries", params],
     queryFn: async () => {
-      const res = await api.get<PaginatedResponse<CommunityEntry>>(BASE, {
+      const res = await api.get<PaginatedResponse<CommunityEntry>>(LIST_BASE, {
         params,
       });
       return res.data;
@@ -53,7 +54,7 @@ export const communityMapPointsQueryOptions = (params: {
 // --- Mutations ---
 
 export const createEntry = async (payload: CreateEntryPayload) => {
-  const res = await api.post<CommunityEntry>(BASE, payload);
+  const res = await api.post<CommunityEntry>(LIST_BASE, payload);
   return res.data;
 };
 

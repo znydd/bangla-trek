@@ -8,6 +8,7 @@ import type {
 } from "@/types/accommodation";
 
 const BASE = "/api/v1/accommodations";
+const LIST_BASE = `${BASE}/`;
 
 // --- Query options ---
 
@@ -17,7 +18,7 @@ export const accommodationsQueryOptions = (
   queryOptions<AccommodationListResponse>({
     queryKey: ["accommodations", params],
     queryFn: async () => {
-      const res = await api.get<AccommodationListResponse>(BASE, { params });
+      const res = await api.get<AccommodationListResponse>(LIST_BASE, { params });
       return res.data;
     },
   });

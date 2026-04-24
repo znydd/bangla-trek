@@ -11,6 +11,7 @@ import type {
 } from "@/types/transit-blueprint";
 
 const BASE = "/api/v1/transit-blueprints";
+const LIST_BASE = `${BASE}/`;
 
 // --- Query options ---
 
@@ -20,7 +21,7 @@ export const transitBlueprintsQueryOptions = (
   queryOptions<TransitBlueprintListResponse>({
     queryKey: ["transit-blueprints", params],
     queryFn: async () => {
-      const res = await api.get<TransitBlueprintListResponse>(BASE, { params });
+      const res = await api.get<TransitBlueprintListResponse>(LIST_BASE, { params });
       return res.data;
     },
   });
@@ -54,7 +55,7 @@ export const routeBlueprintsQueryOptions = (
 export const createTransitBlueprint = async (
   payload: CreateTransitBlueprintPayload,
 ) => {
-  const res = await api.post<TransitBlueprint>(BASE, payload);
+  const res = await api.post<TransitBlueprint>(LIST_BASE, payload);
   return res.data;
 };
 

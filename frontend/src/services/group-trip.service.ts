@@ -12,6 +12,7 @@ import type {
 import type { PaginatedResponse } from "@/types/community";
 
 const BASE = "/api/v1/group-trips";
+const LIST_BASE = `${BASE}/`;
 
 // --- Query options ---
 
@@ -19,7 +20,7 @@ export const groupTripsQueryOptions = (params: GroupTripListParams = {}) =>
   queryOptions<PaginatedResponse<GroupTrip>>({
     queryKey: ["group-trips", "public", params],
     queryFn: async () => {
-      const res = await api.get<PaginatedResponse<GroupTrip>>(BASE, { params });
+      const res = await api.get<PaginatedResponse<GroupTrip>>(LIST_BASE, { params });
       return res.data;
     },
   });
@@ -78,7 +79,7 @@ export const discoverOverlappingQueryOptions = (
 // --- Mutations ---
 
 export const createGroupTrip = async (payload: CreateGroupTripPayload) => {
-  const res = await api.post<GroupTripDetail>(BASE, payload);
+  const res = await api.post<GroupTripDetail>(LIST_BASE, payload);
   return res.data;
 };
 

@@ -9,6 +9,7 @@ import type {
 } from "@/types/review";
 
 const base = (entryId: string) => `/api/v1/community-entries/${entryId}/reviews`;
+const collectionBase = (entryId: string) => `${base(entryId)}/`;
 
 export const entryReviewsQueryOptions = (
   entryId: string,
@@ -17,7 +18,7 @@ export const entryReviewsQueryOptions = (
   queryOptions<EntryReviewListResponse>({
     queryKey: ["community-entries", entryId, "reviews", params],
     queryFn: async () => {
-      const res = await api.get<EntryReviewListResponse>(base(entryId), {
+      const res = await api.get<EntryReviewListResponse>(collectionBase(entryId), {
         params,
       });
       return res.data;
@@ -29,7 +30,7 @@ export const createReview = async (
   entryId: string,
   payload: CreateReviewPayload,
 ) => {
-  const res = await api.post<EntryReview>(base(entryId), payload);
+  const res = await api.post<EntryReview>(collectionBase(entryId), payload);
   return res.data;
 };
 

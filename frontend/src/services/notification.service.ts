@@ -15,8 +15,12 @@ export const notificationsQueryOptions = () =>
   queryOptions({
     queryKey: ["notifications"],
     queryFn: async () => {
-      const response = await api.get<Notification[]>("/notifications/");
-      return response.data;
+      try {
+        const response = await api.get<Notification[]>("/notifications/");
+        return response.data;
+      } catch {
+        return [];
+      }
     },
     refetchInterval: 30000, // Refetch every 30 seconds
   });

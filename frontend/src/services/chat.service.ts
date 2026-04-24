@@ -8,6 +8,7 @@ import type {
 } from "@/types/chat";
 
 const BASE = "/api/v1/chat";
+const SEND_BASE = `${BASE}/`;
 
 // --- Query options ---
 
@@ -44,6 +45,6 @@ export const seasonalIntelQueryOptions = (
 export const sendChatMessage = async (
   payload: ChatSendPayload
 ): Promise<ChatResponse> => {
-  const res = await api.post<ChatResponse>(BASE, payload);
+  const res = await api.post<ChatResponse>(SEND_BASE, payload);
   return res.data;
 };

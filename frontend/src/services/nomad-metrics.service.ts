@@ -3,6 +3,7 @@ import api from "@/lib/api";
 import type { NomadMetricSummary, NomadMetricSubmit } from "@/types/nomad-metrics";
 
 const BASE = "/api/v1/nomad-metrics";
+const SUBMIT_BASE = `${BASE}/`;
 
 export const nomadMetricsQueryOptions = (entryId: string) =>
   queryOptions<NomadMetricSummary>({
@@ -14,6 +15,6 @@ export const nomadMetricsQueryOptions = (entryId: string) =>
   });
 
 export const submitNomadMetric = async (payload: NomadMetricSubmit) => {
-  const res = await api.post(BASE, payload);
+  const res = await api.post(SUBMIT_BASE, payload);
   return res.data;
 };
