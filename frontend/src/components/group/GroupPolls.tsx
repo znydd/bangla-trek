@@ -36,7 +36,12 @@ interface GroupPollsProps {
 
 export default function GroupPolls({ tripId }: GroupPollsProps) {
   const queryClient = useQueryClient();
-  const { data: polls = [], isLoading } = useQuery(groupPollsQueryOptions(tripId));
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const { data: polls = [], isLoading } = useQuery({
+    ...groupPollsQueryOptions(tripId),
+    refetchInterval: isCreateOpen ? false : 15000,
+    refetchOnWindowFocus: !isCreateOpen,
+  });
 
   const voteMutation = useMutation({
     mutationFn: ({ pollId, optionId }: { pollId: string; optionId: string }) =>
@@ -49,14 +54,6 @@ export default function GroupPolls({ tripId }: GroupPollsProps) {
     onError: () => toast.error("Failed to record vote."),
   });
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -64,10 +61,18 @@ export default function GroupPolls({ tripId }: GroupPollsProps) {
           <BarChart3 className="h-5 w-5 text-primary" />
           Polls
         </h2>
-        <CreatePollDialog tripId={tripId} />
+        <CreatePollDialog
+          tripId={tripId}
+          open={isCreateOpen}
+          onOpenChange={setIsCreateOpen}
+        />
       </div>
 
-      {polls.length === 0 ? (
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      ) : polls.length === 0 ? (
         <Card className="p-8 text-center border-dashed border-2 bg-muted/20">
           <p className="text-muted-foreground">No active polls yet.</p>
           <p className="text-xs text-muted-foreground mt-1">Start a poll to decide on attractions or hotels!</p>
@@ -151,8 +156,15 @@ export default function GroupPolls({ tripId }: GroupPollsProps) {
   );
 }
 
-function CreatePollDialog({ tripId }: { tripId: string }) {
-  const [isOpen, setIsOpen] = useState(false);
+function CreatePollDialog({
+  tripId,
+  open,
+  onOpenChange,
+}: {
+  tripId: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [options, setOptions] = useState(["", ""]);
@@ -164,10 +176,12 @@ function CreatePollDialog({ tripId }: { tripId: string }) {
       queryClient.invalidateQueries({ queryKey: ["group-polls", tripId] });
       queryClient.invalidateQueries({ queryKey: ["group-activity", tripId] });
       toast.success("Poll created!");
-      setIsOpen(false);
+      onOpenChange(false);
       resetForm();
     },
-    onError: () => toast.error("Failed to create poll."),
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.detail || "Failed to create poll.");
+    },
   });
 
   const resetForm = () => {
@@ -190,17 +204,17 @@ function CreatePollDialog({ tripId }: { tripId: string }) {
       return;
     }
     createMutation.mutate({
-      title,
-      description,
+      title: title.trim(),
+      description: description.trim() || undefined,
       options: validOptions.map((text) => ({ text })),
     });
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger
         render={
-          <Button size="sm" className="gap-2 rounded-full">
+          <Button type="button" size="sm" className="gap-2 rounded-full">
             <Plus size={16} /> New Poll
           </Button>
         }
@@ -244,6 +258,7 @@ function CreatePollDialog({ tripId }: { tripId: string }) {
                   />
                   {options.length > 2 && (
                     <Button
+                      type="button"
                       variant="ghost"
                       size="icon"
                       onClick={() => handleRemoveOption(i)}
@@ -255,6 +270,7 @@ function CreatePollDialog({ tripId }: { tripId: string }) {
                 </div>
               ))}
               <Button
+                type="button"
                 variant="outline"
                 size="sm"
                 onClick={handleAddOption}
@@ -267,6 +283,7 @@ function CreatePollDialog({ tripId }: { tripId: string }) {
         </div>
         <DialogFooter>
           <Button
+            type="button"
             onClick={handleCreate}
             disabled={createMutation.isPending}
             className="w-full"

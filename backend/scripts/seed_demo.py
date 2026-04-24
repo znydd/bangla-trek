@@ -1,5 +1,11 @@
 import uuid
+import os
+import sys
 from datetime import datetime, date, timedelta
+
+# Add the backend directory to sys.path so this script works when run directly.
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from app.db.session import SessionLocal
 from app.models.user import User
 from app.models.community_entry import CommunityEntry
@@ -29,12 +35,13 @@ def seed_demo_data():
         if not entry:
             entry = CommunityEntry(
                 user_id=demo_user.id,
-                title="Ratargul Swamp Forest",
+                name="Ratargul Swamp Forest",
                 location="Sylhet",
-                description="The only freshwater swamp forest in Bangladesh. Best visited during monsoon.",
-                category="Nature",
-                tags=["Hidden Gem", "Monsoon Special"],
-                price_range="200-500 BDT",
+                travel_tips="The only freshwater swamp forest in Bangladesh. Best visited during monsoon.",
+                category="attraction",
+                tags=["hidden_gem", "monsoon_special"],
+                amenities=["Boat Trip", "Wildlife", "Photography"],
+                price_range="budget",
             )
             db.add(entry)
             db.commit()

@@ -16,4 +16,5 @@ dependencies = [
     "sqlalchemy[asyncio]>=2.0.48",
     "google-genai>=1.0.0",
     "groq>=0.4.2",
+    "reportlab>=4.4.10",
 ]

@@ -1,22 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { currentUserQueryOptions, loginWithGoogle, loginWithMock } from "@/services/auth.service";
+import { loginWithGoogle, loginWithMock } from "@/services/auth.service";
 
 import { Button } from "@/components/ui/button";
 import { Compass, Map, ShieldCheck, Zap } from "lucide-react";
 
 export const Route = createFileRoute("/")({
-  beforeLoad: async ({ context }) => {
-    // Check if user is already authenticated
-    try {
-      const user = await context.queryClient.ensureQueryData(currentUserQueryOptions);
-      if (user) {
-        // If logged in, maybe we stay on landing but with different CTA
-        // or redirect to a dashboard. For now, let's keep it simple.
-      }
-    } catch {
-      // Not logged in, that's fine for the landing page
-    }
-  },
   component: HomePage,
 });
 
@@ -29,13 +17,13 @@ function HomePage() {
           <Zap size={16} />
           <span>AI-Powered Itinerary Planner</span>
         </div>
-        
+
         <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 bg-linear-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
           Discover the Soul of <br className="hidden md:block" /> Bangladesh
         </h1>
-        
+
         <p className="max-w-2xl text-lg md:text-xl text-muted-foreground mb-10 leading-relaxed">
-          Plan your perfect trip with AI-powered itineraries, community-sourced hidden gems, 
+          Plan your perfect trip with AI-powered itineraries, community-sourced hidden gems,
           and real-time collaboration. Your adventure starts here.
         </p>
 

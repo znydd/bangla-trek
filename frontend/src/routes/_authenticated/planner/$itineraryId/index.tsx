@@ -1,6 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { itineraryQueryOptions } from "@/services/itinerary.service";
+import {
+  exportItineraryPdf,
+  itineraryQueryOptions,
+} from "@/services/itinerary.service";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,6 +22,7 @@ import {
 } from "lucide-react";
 
 import { useState } from "react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/planner/$itineraryId/")({
   component: ItineraryViewPage,
@@ -50,6 +54,7 @@ function ItineraryViewPage() {
     itineraryQueryOptions(itineraryId)
   );
   const [activeDay, setActiveDay] = useState(1);
+  const [isExporting, setIsExporting] = useState(false);
 
   if (isLoading) {
     return (
@@ -93,12 +98,30 @@ function ItineraryViewPage() {
           <Button
             variant="outline"
             size="sm"
-            render={
-              <a href={`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/v1/itineraries/${itineraryId}/export`} target="_blank" rel="noreferrer">
-                <Compass className="mr-2 h-4 w-4" /> Download PDF
-              </a>
-            }
-          />
+            disabled={isExporting}
+            onClick={async () => {
+              try {
+                setIsExporting(true);
+                toast.info("Preparing your PDF...");
+                await exportItineraryPdf(itineraryId);
+                toast.success("Download started!");
+              } catch (error: any) {
+                toast.error(
+                  error?.response?.data?.detail ||
+                    "Failed to generate PDF. Please try again."
+                );
+              } finally {
+                setIsExporting(false);
+              }
+            }}
+          >
+            {isExporting ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Compass className="mr-2 h-4 w-4" />
+            )}
+            Download PDF
+          </Button>
 
           <Button
             variant="outline"

@@ -68,7 +68,7 @@ class ExportService:
         elements = []
 
         # --- Title Page ---
-        elements.append(Paragraph(itinerary.title, self.styles['ItineraryTitle']))
+        elements.append(Paragraph(f"{itinerary.destination} Itinerary", self.styles['ItineraryTitle']))
         elements.append(Paragraph(f"Destination: {itinerary.destination}", self.styles['Heading3']))
         elements.append(Paragraph(f"Duration: {itinerary.duration_days} Days", self.styles['Normal']))
         elements.append(Paragraph(f"Budget: {itinerary.budget} BDT", self.styles['Normal']))
@@ -116,7 +116,11 @@ class ExportService:
         if metrics:
             data = [["Resource", "Rating/Provider", "Notes"]]
             for m in metrics:
-                data.append([m.carrier_name or m.category, f"{m.connectivity_rating}/5" if m.connectivity_rating else "N/A", m.notes or ""])
+                data.append([
+                    m.carrier,
+                    f"Signal: {m.signal_strength}",
+                    f"Safety: {m.safety_rating}/5 | bKash: {'Available' if m.bkash_available else 'Not available'}",
+                ])
             
             t = Table(data, colWidths=[1.5*inch, 1.5*inch, 2.5*inch])
             t.setStyle(TableStyle([
@@ -206,4 +210,3 @@ class ExportService:
     def _get_emergency_resources(self, destination: str) -> List[EmergencyFacility]:
         query = select(EmergencyFacility).where(EmergencyFacility.district.ilike(f"%{destination}%")).limit(5)
         return list(self.db.execute(query).scalars().all())
-

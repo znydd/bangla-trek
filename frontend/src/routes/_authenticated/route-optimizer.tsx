@@ -365,7 +365,7 @@ function RouteOptimizerPage() {
                   {day.needs_transit_blueprint && (
                     <div className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md text-xs">
                       <p className="font-bold text-destructive mb-1">Road route unavailable.</p>
-                      <Link to="/transit-blueprint" className="text-primary font-bold hover:underline">Open Transit Blueprint →</Link>
+                      <Link to="/transit-blueprints" className="text-primary font-bold hover:underline">Open Transit Blueprint →</Link>
                     </div>
                   )}
                 </div>

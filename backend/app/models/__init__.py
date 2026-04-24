@@ -13,6 +13,8 @@ from app.models.transit_fare_contribution import TransitFareContribution
 from app.models.user_location import UserLocation
 from app.models.buddy_match import BuddyMatch
 from app.models.trip_budget import GroupTripBudget, GroupTripExpense
+from app.models.group_activity import GroupActivity
+from app.models.poll import Poll, PollOption, Vote
 
 __all__ = [
     "User", "CommunityEntry", "EntryPhoto", "EntryReview", "EntryReviewPhoto",
@@ -23,4 +25,5 @@ __all__ = [
     "TransitFareContribution",
     "GroupTrip", "GroupTripMember", "UserLocation", "BuddyMatch",
     "GroupTripBudget", "GroupTripExpense",
+    "GroupActivity", "Poll", "PollOption", "Vote",
 ]

@@ -13,6 +13,7 @@ from app.api.v1.transit_blueprints import router as transit_blueprints_router
 from app.api.v1.transit_fares import router as transit_fares_router
 from app.api.v1.user_locations import router as user_locations_router
 from app.api.v1.buddy_matching import router as buddy_matching_router
+from app.api.v1.group_collaboration import router as group_collaboration_router
 
 router = APIRouter(prefix="/api/v1")
 
@@ -31,3 +32,4 @@ router.include_router(transit_fares_router)
 
 router.include_router(user_locations_router)
 router.include_router(buddy_matching_router)
+router.include_router(group_collaboration_router)
