@@ -67,6 +67,26 @@ class BuddyMatchingService:
 
         return min(score, 1.0)
 
+    def notify_overlaps_for_user(self, user_id: uuid.UUID):
+        """Find overlaps and notify the user about connections in the same area."""
+        from app.services.messaging_service import MessagingService
+        messaging = MessagingService(self.db)
+        
+        # In a real app, this would be a background task to avoid slowing down requests
+        try:
+            suggestions = self.discover_buddies(user_id)
+            for s in suggestions:
+                # If they have common destinations and a high match score, notify
+                if s.common_destinations and s.match_score > 0.6:
+                    messaging.notify_travel_overlap(
+                        user_id=user_id,
+                        friend_name=s.matched_user_name,
+                        destination=s.common_destinations[0]
+                    )
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f"Failed to notify overlapping trips: {e}")
+
     def discover_buddies(
         self,
         user_id: uuid.UUID,

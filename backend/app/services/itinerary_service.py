@@ -170,12 +170,37 @@ class ItineraryService:
         self.db.add(itinerary)
         self.db.commit()
         self.db.refresh(itinerary)
-
+        
         # 4. Post-process: Optimize routes for each day
-        await self._optimize_itinerary_routes(itinerary)
+        try:
+            await self._optimize_itinerary_routes(itinerary)
+        except Exception as e:
+            logger.error("Failed to optimize itinerary routes: %s", str(e))
+
+        try:
+            from app.services.chat_service import ChatService
+            from app.services.messaging_service import MessagingService
+            
+            chat_service = ChatService(self.db)
+            messaging = MessagingService(self.db)
+            
+            # Get seasonal intel for the destination
+            intel = chat_service.get_seasonal_intel(itinerary.destination)
+            if intel.get("warnings"):
+                # Notify the user about the most severe warning or just the first one
+                top_warning = intel["warnings"][0]
+                messaging.notify_seasonal_warning(
+                    user_id=user_id,
+                    destination=itinerary.destination,
+                    warning_title=top_warning["title"],
+                    warning_content=top_warning["description"]
+                )
+        except Exception as e:
+            logger.error(f"Failed to send seasonal warning: {e}")
 
         return self.get_itinerary(itinerary.id)
 
+      
     async def _optimize_itinerary_routes(self, itinerary: Itinerary):
         """
         Geographic clustering and path optimization post-processing.
@@ -219,6 +244,7 @@ class ItineraryService:
                 # To truly minimize backtracking, we'd need to reassign the activities to the sorted time slots
                 # For this implementation, we'll just reorder the unvisited list and update times
                 # This is a placeholder for a more robust time-shuffling algorithm
+                
 
     def list_user_itineraries(self, user_id: uuid.UUID) -> List[Itinerary]:
         """List all itineraries for a user, newest first."""

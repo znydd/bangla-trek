@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { logout, loginWithGoogle } from "@/services/auth.service";
 import { Button } from "@/components/ui/button";
+import NotificationDropdown from "@/components/layout/NotificationDropdown";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -70,7 +71,10 @@ export default function Navbar() {
           {isLoading ? (
             <div className="h-8 w-24 bg-muted animate-pulse rounded-lg" />
           ) : isAuthenticated && user ? (
-            <DropdownMenu>
+            <>
+              <NotificationDropdown />
+              <DropdownMenu>
+
               <DropdownMenuTrigger render={<Button variant="ghost" className="relative flex items-center gap-2 pr-1 h-10 rounded-full hover:bg-muted" />}>
                 <div className="h-7 w-7 rounded-full overflow-hidden border bg-muted shrink-0">
                   {user.picture_url ? (
@@ -128,6 +132,7 @@ export default function Navbar() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            </>
           ) : (
             <Button onClick={loginWithGoogle} size="sm" className="rounded-full px-5">
               Login

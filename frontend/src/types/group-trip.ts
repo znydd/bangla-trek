@@ -17,6 +17,7 @@ export interface GroupTrip {
   visibility: "public" | "private";
   invite_code: string;
   member_count: number;
+  itinerary_id: string | null;
   created_at: string;
   creator_name: string;
   creator_picture_url: string | null;
@@ -35,6 +36,7 @@ export interface GroupTripPreview {
   end_date: string;
   visibility: "public" | "private";
   member_count: number;
+  itinerary_id: string | null;
   creator_name: string;
   creator_picture_url: string | null;
 }

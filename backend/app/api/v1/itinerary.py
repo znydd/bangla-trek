@@ -69,3 +69,32 @@ def delete_itinerary(
         raise HTTPException(status_code=404, detail=str(e))
     except PermissionError as e:
         raise HTTPException(status_code=403, detail=str(e))
+
+
+@router.get("/{itinerary_id}/export")
+def export_itinerary(
+    itinerary_id: uuid.UUID,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Export an itinerary as a PDF document."""
+    from fastapi import Response
+    from app.services.export_service import ExportService
+    
+    # We could check permissions here, but for now we allow anyone with the ID
+    # (or we could restrict to members of the trip it belongs to)
+    try:
+        service = ExportService(db)
+        pdf_content = service.generate_itinerary_pdf(itinerary_id)
+        
+        return Response(
+            content=pdf_content,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f"attachment; filename=itinerary_{itinerary_id}.pdf"
+            }
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")

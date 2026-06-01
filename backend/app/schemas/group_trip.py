@@ -52,6 +52,7 @@ class GroupTripRead(BaseModel):
     visibility: str
     invite_code: str
     member_count: int = 0
+    itinerary_id: Optional[uuid.UUID] = None
     created_at: datetime
 
     # Creator info
@@ -83,6 +84,7 @@ class GroupTripPreview(BaseModel):
     end_date: date
     visibility: str
     member_count: int = 0
+    itinerary_id: Optional[uuid.UUID] = None
     creator_name: str
     creator_picture_url: Optional[str] = None
 
@@ -98,6 +100,7 @@ class OverlappingTrip(BaseModel):
     end_date: date
     visibility: str
     member_count: int = 0
+    itinerary_id: Optional[uuid.UUID] = None
     creator_name: str
     creator_picture_url: Optional[str] = None
 
