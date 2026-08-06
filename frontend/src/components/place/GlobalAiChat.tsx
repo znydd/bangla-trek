@@ -38,6 +38,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import aiMascot from "@/data/ai_mascot.svg";
 import svgSparkle from "@/data/ai_sparkle.svg";
+import dragHandle from "@/data/drag-handle-svgrepo-com.svg";
 
 interface GlobalAiChatProps {
   width: number;
@@ -211,7 +212,8 @@ export function GlobalAiChat({
         variant="sidebar"
         collapsible="offcanvas"
         aria-label="Bangla Trek AI assistant"
-        className="z-50"
+        className="z-50 inset-y-2! mr-2 h-[calc(100svh-1rem)]! rounded-2xl border border-zinc-200 bg-sidebar shadow-none! group-data-[collapsible=offcanvas]:invisible group-data-[collapsible=offcanvas]:mr-0! [&>[data-slot=sidebar-inner]]:rounded-2xl"
+        style={{ borderColor: "#e4e4e7", boxShadow: "none" }}
       >
         <SidebarHeader className="h-16 flex-row items-center  border-b px-4 py-0">
           <Button
@@ -401,10 +403,20 @@ export function GlobalAiChat({
             }
           }}
           className={cn(
-            "!cursor-col-resize touch-none after:bg-sidebar-border",
-            isResizing && "bg-emerald-500/10 after:bg-emerald-500",
+            "!cursor-col-resize touch-none after:hidden! group-data-[collapsible=offcanvas]:hidden!",
+            isResizing && "bg-transparent!",
           )}
         >
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute left-1/2 top-1/2 flex h-8 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-md border border-zinc-300 bg-white shadow-none dark:bg-zinc-900"
+          >
+            <img
+              src={dragHandle}
+              alt=""
+              className="size-3 opacity-70 dark:invert"
+            />
+          </span>
           <span className="sr-only">Resize sidebar</span>
         </SidebarRail>
       </Sidebar>
