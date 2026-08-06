@@ -7,6 +7,7 @@ from sqlalchemy import (
     DateTime,
     Float,
     ForeignKey,
+    Index,
     Integer,
     String,
     Text,
@@ -35,6 +36,10 @@ class EntryReview(Base):
         CheckConstraint(
             "travel_style IN ('budget', 'luxury', 'adventure', 'family')",
             name="ck_entry_reviews_travel_style",
+        ),
+        Index(
+            "ix_entry_reviews_travel_style",
+            "travel_style",
         ),
     )
 
@@ -80,9 +85,7 @@ class EntryReview(Base):
     )
     user: Mapped["User"] = relationship("User")
     itinerary: Mapped[Optional["Itinerary"]] = relationship("Itinerary")
-    activity: Mapped[Optional["ItineraryActivity"]] = relationship(
-        "ItineraryActivity"
-    )
+    activity: Mapped[Optional["ItineraryActivity"]] = relationship("ItineraryActivity")
     photos: Mapped[List["EntryReviewPhoto"]] = relationship(
         "EntryReviewPhoto", back_populates="review", cascade="all, delete-orphan"
     )
