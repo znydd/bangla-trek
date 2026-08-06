@@ -126,5 +126,26 @@
     }
   html {
     @apply font-sans;
-    }
+  }
+}
+
+@keyframes ai-mascot-hover {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(2deg);
+  }
+}
+
+.ai-mascot-hover {
+  animation: ai-mascot-hover 2.8s ease-in-out infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-mascot-hover {
+    animation: none;
+  }
 }

@@ -32,7 +32,7 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
-      {import.meta.env.DEV && <ReactQueryDevtools />}
+      {import.meta.env.DEV && <ReactQueryDevtools buttonPosition="bottom-left" />}
     </QueryClientProvider>
   </StrictMode>,
 );
