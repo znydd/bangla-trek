@@ -7,6 +7,8 @@ interface LocationMapProps {
   longitude?: number | null;
   locationQuery: string;
   name: string;
+  height?: number;
+  compact?: boolean;
 }
 
 type Coordinate = {
@@ -44,12 +46,20 @@ function parseCoordinate(value: unknown): number | null {
   return null;
 }
 
-export function LocationMap({ latitude, longitude, locationQuery, name }: LocationMapProps) {
+export function LocationMap({
+  latitude,
+  longitude,
+  locationQuery,
+  name,
+  height = 320,
+  compact = false,
+}: LocationMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markerRef = useRef<maplibregl.Marker | null>(null);
   const usingFallbackRef = useRef(false);
-  const key = import.meta.env.VITE_BARIKOI_API_KEY;
+  const barikoiKey = import.meta.env.VITE_BARIKOI_API_KEY;
+  const mapTilerKey = import.meta.env.VITE_MAPTILER_KEY;
 
   const [resolvedCoord, setResolvedCoord] = useState<Coordinate | null>(null);
   const [isResolving, setIsResolving] = useState(false);
@@ -70,7 +80,7 @@ export function LocationMap({ latitude, longitude, locationQuery, name }: Locati
     }
 
     const query = locationQuery?.trim();
-    if (!query || !key) {
+    if (!query || !barikoiKey) {
       setResolvedCoord(null);
       return;
     }
@@ -82,7 +92,7 @@ export function LocationMap({ latitude, longitude, locationQuery, name }: Locati
       setIsResolving(true);
       try {
         const url = new URL("https://barikoi.xyz/v2/api/search/autocomplete/place");
-        url.searchParams.set("api_key", key);
+        url.searchParams.set("api_key", barikoiKey);
         url.searchParams.set("q", query);
         url.searchParams.set("country_code", "bd");
 
@@ -117,7 +127,7 @@ export function LocationMap({ latitude, longitude, locationQuery, name }: Locati
       cancelled = true;
       controller.abort();
     };
-  }, [explicitCoord, key, locationQuery]);
+  }, [explicitCoord, barikoiKey, locationQuery]);
 
   useEffect(() => {
     return () => {
@@ -133,19 +143,21 @@ export function LocationMap({ latitude, longitude, locationQuery, name }: Locati
     }
 
     const center: [number, number] = [resolvedCoord.longitude, resolvedCoord.latitude];
-    const barikoiStyle = key
-      ? `https://map.barikoi.com/styles/barikoi/style.json?key=${key}`
-      : OSM_FALLBACK_STYLE;
+    const preferredStyle = mapTilerKey
+      ? `https://api.maptiler.com/maps/streets-v2/style.json?key=${mapTilerKey}`
+      : barikoiKey
+        ? `https://map.barikoi.com/styles/barikoi/style.json?key=${barikoiKey}`
+        : OSM_FALLBACK_STYLE;
 
     if (!mapRef.current) {
       const map = new maplibregl.Map({
         container: mapContainer.current,
-        style: barikoiStyle,
+        style: preferredStyle,
         center,
         zoom: 13,
       });
 
-      if (key) {
+      if (mapTilerKey || barikoiKey) {
         map.on("error", () => {
           if (!usingFallbackRef.current) {
             usingFallbackRef.current = true;
@@ -154,7 +166,9 @@ export function LocationMap({ latitude, longitude, locationQuery, name }: Locati
         });
       }
 
-      map.addControl(new maplibregl.NavigationControl(), "top-right");
+      if (!compact) {
+        map.addControl(new maplibregl.NavigationControl(), "top-right");
+      }
       mapRef.current = map;
 
       markerRef.current = new maplibregl.Marker({ color: "#16a34a" })
@@ -167,13 +181,19 @@ export function LocationMap({ latitude, longitude, locationQuery, name }: Locati
 
     mapRef.current.flyTo({ center, zoom: 13 });
     markerRef.current?.setLngLat(center).setPopup(new maplibregl.Popup().setText(name));
-  }, [resolvedCoord, name, key]);
+  }, [resolvedCoord, name, mapTilerKey, barikoiKey, compact]);
 
   const mapUnavailable = !resolvedCoord && !isResolving;
 
   return (
-    <div className="rounded-2xl overflow-hidden border border-border shadow-sm">
-      <div ref={mapContainer} style={{ height: "320px", width: "100%" }} />
+    <div
+      className={
+        compact
+          ? "overflow-hidden rounded-xl border border-border"
+          : "overflow-hidden rounded-2xl border border-border shadow-sm"
+      }
+    >
+      <div ref={mapContainer} style={{ height, width: "100%" }} />
       {isResolving && (
         <p className="px-3 py-2 text-xs text-muted-foreground border-t border-border/60">
           Resolving location for map...

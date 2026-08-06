@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PlacesPlaceIdRouteImport } from './routes/places/$placeId'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as AuthenticatedRouteOptimizerRouteImport } from './routes/_authenticated/route-optimizer'
 import { Route as AuthenticatedAuthenticatedRouteImport } from './routes/_authenticated/authenticated'
@@ -47,6 +48,11 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlacesPlaceIdRoute = PlacesPlaceIdRouteImport.update({
+  id: '/places/$placeId',
+  path: '/places/$placeId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
@@ -187,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/authenticated': typeof AuthenticatedAuthenticatedRoute
   '/route-optimizer': typeof AuthenticatedRouteOptimizerRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/places/$placeId': typeof PlacesPlaceIdRoute
   '/community/$entryId': typeof AuthenticatedCommunityEntryIdRoute
   '/community/new': typeof AuthenticatedCommunityNewRoute
   '/emergency/new': typeof AuthenticatedEmergencyNewRoute
@@ -213,6 +220,7 @@ export interface FileRoutesByTo {
   '/authenticated': typeof AuthenticatedAuthenticatedRoute
   '/route-optimizer': typeof AuthenticatedRouteOptimizerRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/places/$placeId': typeof PlacesPlaceIdRoute
   '/community/$entryId': typeof AuthenticatedCommunityEntryIdRoute
   '/community/new': typeof AuthenticatedCommunityNewRoute
   '/emergency/new': typeof AuthenticatedEmergencyNewRoute
@@ -241,6 +249,7 @@ export interface FileRoutesById {
   '/_authenticated/authenticated': typeof AuthenticatedAuthenticatedRoute
   '/_authenticated/route-optimizer': typeof AuthenticatedRouteOptimizerRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/places/$placeId': typeof PlacesPlaceIdRoute
   '/_authenticated/community/$entryId': typeof AuthenticatedCommunityEntryIdRoute
   '/_authenticated/community/new': typeof AuthenticatedCommunityNewRoute
   '/_authenticated/emergency/new': typeof AuthenticatedEmergencyNewRoute
@@ -269,6 +278,7 @@ export interface FileRouteTypes {
     | '/authenticated'
     | '/route-optimizer'
     | '/auth/callback'
+    | '/places/$placeId'
     | '/community/$entryId'
     | '/community/new'
     | '/emergency/new'
@@ -295,6 +305,7 @@ export interface FileRouteTypes {
     | '/authenticated'
     | '/route-optimizer'
     | '/auth/callback'
+    | '/places/$placeId'
     | '/community/$entryId'
     | '/community/new'
     | '/emergency/new'
@@ -322,6 +333,7 @@ export interface FileRouteTypes {
     | '/_authenticated/authenticated'
     | '/_authenticated/route-optimizer'
     | '/auth/callback'
+    | '/places/$placeId'
     | '/_authenticated/community/$entryId'
     | '/_authenticated/community/new'
     | '/_authenticated/emergency/new'
@@ -348,6 +360,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   LoginRoute: typeof LoginRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
+  PlacesPlaceIdRoute: typeof PlacesPlaceIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -371,6 +384,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/places/$placeId': {
+      id: '/places/$placeId'
+      path: '/places/$placeId'
+      fullPath: '/places/$placeId'
+      preLoaderRoute: typeof PlacesPlaceIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/callback': {
@@ -594,6 +614,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LoginRoute: LoginRoute,
   AuthCallbackRoute: AuthCallbackRoute,
+  PlacesPlaceIdRoute: PlacesPlaceIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
