@@ -8,7 +8,6 @@ export default function Navbar() {
 
   const navItemClass =
     "text-sm text-white/65 transition-colors hover:text-white";
-
   return (
     <header className="relative z-50 px-4 pt-4">
       <nav className="mx-auto flex h-14 max-w-5xl items-center justify-between rounded-full border border-white/10 bg-zinc-950 px-3 pl-5 text-white shadow-2xl shadow-black/15">
@@ -29,10 +28,6 @@ export default function Navbar() {
 
           {isAuthenticated ? (
             <>
-              <Link to="/planner" className={navItemClass}>
-                AI Planner
-              </Link>
-
               <Link to="/emergency" className={navItemClass}>
                 Travel Companion
               </Link>
@@ -43,14 +38,6 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              <button
-                type="button"
-                onClick={loginWithGoogle}
-                className={navItemClass}
-              >
-                AI Planner
-              </button>
-
               <button
                 type="button"
                 onClick={loginWithGoogle}
