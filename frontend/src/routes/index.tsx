@@ -1,8 +1,6 @@
 import { useState, type SubmitEvent } from "react";
-import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  ArrowRight,
   BadgeCheck,
   Compass,
   MapPin,
@@ -11,9 +9,19 @@ import {
 } from "lucide-react";
 
 import bannerImage from "../../banner.png";
-import { communityEntriesQueryOptions } from "@/services/community.service";
-import { getPriceRangeLabel } from "@/components/community/EntryCard";
-import type { CommunityEntry } from "@/types/community";
+import aiMascot from "@/data/ai_mascot.svg";
+import { ADD_GLOBAL_AI_CONTEXT_EVENT } from "@/components/place/GlobalAiChat";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  resolvePlaceImage,
+  syntheticPlaceCards,
+} from "@/data/synthetic-place";
+import type { PlaceCardData } from "@/types/place";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -25,16 +33,17 @@ function HomePage() {
   const [searchInput, setSearchInput] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
 
-  const listingsQuery = useQuery(
-    communityEntriesQueryOptions({
-      page: 1,
-      per_page: 8,
-      search: appliedSearch || undefined,
-      sort_by: "newest",
-    }),
-  );
-
-  const places = listingsQuery.data?.items ?? [];
+  const normalizedSearch = appliedSearch.toLowerCase();
+  const places = syntheticPlaceCards.filter((place) => {
+    if (!normalizedSearch) return true;
+    return [
+      place.name,
+      place.location.upazila,
+      place.location.district,
+      place.category,
+      ...place.tags,
+    ].some((value) => value.toLowerCase().includes(normalizedSearch));
+  });
 
   const handleSearch = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -99,49 +108,28 @@ function HomePage() {
           Explore Bangladesh
         </div>
 
-        {listingsQuery.isLoading && (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {Array.from({ length: 8 }).map((_, index) => (
-              <div
-                key={index}
-                className="h-85 animate-pulse rounded-3xl bg-zinc-200"
-              />
-            ))}
+        {places.length === 0 && (
+          <div className="rounded-3xl border border-dashed border-zinc-300 bg-white px-6 py-16 text-center">
+            <Search className="mx-auto mb-4 text-zinc-400" size={32} />
+            <h3 className="text-lg font-semibold text-zinc-950">
+              No synthetic places match that search
+            </h3>
+            <p className="mt-1 text-sm text-zinc-500">
+              This UI preview currently contains one place. Clear the search to
+              see it.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setSearchInput("");
+                setAppliedSearch("");
+              }}
+              className="mt-5 text-sm font-semibold text-emerald-700"
+            >
+              Clear search
+            </button>
           </div>
         )}
-
-        {listingsQuery.isError && (
-          <div className="rounded-3xl border border-red-200 bg-red-50 px-6 py-12 text-center text-red-700">
-            Places could not be loaded. Make sure the backend is running.
-          </div>
-        )}
-
-        {!listingsQuery.isLoading &&
-          !listingsQuery.isError &&
-          places.length === 0 && (
-            <div className="rounded-3xl border border-dashed border-zinc-300 bg-white px-6 py-16 text-center">
-              <Search className="mx-auto mb-4 text-zinc-400" size={32} />
-              <h3 className="text-lg font-semibold text-zinc-950">
-                No places found
-              </h3>
-              <p className="mt-1 text-sm text-zinc-500">
-                Try another destination or remove the search.
-              </p>
-
-              {appliedSearch && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSearchInput("");
-                    setAppliedSearch("");
-                  }}
-                  className="mt-5 text-sm font-semibold text-emerald-700"
-                >
-                  Clear search
-                </button>
-              )}
-            </div>
-          )}
 
         {places.length > 0 && (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -155,81 +143,93 @@ function HomePage() {
   );
 }
 
-function LandingPlaceCard({ entry }: { entry: CommunityEntry }) {
-  const photo = entry.photos[0]?.url || bannerImage;
-
-  // Temporary UI rule. Replace with a real backend field later.
-  const isVerified =
-    entry.author_name.trim().toLowerCase() === "bangla trek";
+function LandingPlaceCard({ entry }: { entry: PlaceCardData }) {
+  const photo = resolvePlaceImage(entry.cover_image);
+  const isVerified = entry.source.verified;
 
   return (
-    <button
-      type="button"
-      className="group block h-92.5 w-full text-left"
-    >
-      <article className="relative h-full overflow-hidden rounded-[1.75rem] border border-black/10 bg-zinc-900 shadow-sm transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-2xl group-hover:shadow-black/15">
-        <img
-          src={photo}
-          alt={entry.name}
-          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-        />
+    <article className="group relative h-80 w-full overflow-hidden rounded-[1.75rem] border border-black/10 bg-zinc-900 text-left shadow-sm">
+      <img
+        src={photo}
+        alt={entry.cover_image.alt}
+        style={{ objectPosition: entry.cover_image.object_position }}
+        className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+      />
 
-        <div className="absolute inset-0 bg-linear-to-t from-black via-black/25 to-transparent" />
+      <div className="absolute inset-0 bg-linear-to-t from-black via-black/45 to-transparent" />
 
-        <div className="absolute left-4 top-4">
-          {isVerified ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-400 px-3 py-1.5 text-xs font-bold text-zinc-950 shadow-lg">
-              <BadgeCheck size={14} />
-              Verified
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-black/30 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-md">
-              <Users size={14} />
-              Community
-            </span>
-          )}
-        </div>
+      <Link
+        to="/places/$placeId"
+        params={{ placeId: entry.slug }}
+        aria-label={`View ${entry.name}`}
+        className="absolute inset-0 z-10 rounded-[1.75rem] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
+      />
 
-        {entry.tags[0] && (
-          <span className="absolute right-4 top-4 rounded-full border border-white/25 bg-white/15 px-3 py-1.5 text-xs font-medium capitalize text-white backdrop-blur-md">
-            {entry.tags[0].replace("_", " ")}
+      <div className="pointer-events-none absolute left-4 top-4 z-20">
+        {isVerified ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-400 px-3 py-1.5 text-xs font-bold text-zinc-950 shadow-lg">
+            <BadgeCheck size={14} />
+            Verified
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-black/30 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-md">
+            <Users size={14} />
+            Community Discovery
           </span>
         )}
+      </div>
 
-        <div className="absolute inset-x-0 bottom-0 p-5 text-white">
-          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-300">
-            {entry.category}
+      {entry.tags[0] && (
+        <span className="pointer-events-none absolute right-4 top-4 z-20 rounded-full border border-white/25 bg-white/15 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-md">
+          {entry.tags[0]}
+        </span>
+      )}
+
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 p-5 pr-20 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
+        <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-200">
+          {entry.category}
+        </p>
+
+        <h3 className="mt-2 text-2xl font-bold tracking-tight">{entry.name}</h3>
+
+        <p className="mt-2 flex items-center gap-1.5 text-sm font-medium text-white/90">
+          <MapPin size={15} />
+          {entry.location.upazila}, {entry.location.district}
+        </p>
+
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-medium text-white/90">
+          <span className="font-bold text-amber-300">
+            ★ {entry.rating?.toFixed(1) ?? "New"}
           </span>
-
-          <h3 className="mt-2 line-clamp-2 text-2xl font-bold leading-tight tracking-tight">
-            {entry.name}
-          </h3>
-
-          <div className="mt-2 flex items-center gap-1.5 text-sm text-white/75">
-            <MapPin size={15} className="shrink-0" />
-            <span className="line-clamp-1">{entry.location}</span>
-          </div>
-
-          <div className="grid grid-rows-[0fr] opacity-0 transition-all duration-300 group-hover:mt-4 group-hover:grid-rows-[1fr] group-hover:opacity-100">
-            <div className="overflow-hidden">
-              <p className="line-clamp-2 text-sm leading-relaxed text-white/75">
-                {entry.travel_tips ||
-                  "Local information, expected costs and practical travel advice."}
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-4 flex items-center justify-between border-t border-white/20 pt-4">
-            <span className="text-sm font-semibold">
-              {getPriceRangeLabel(entry.price_range)}
-            </span>
-
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-zinc-950 transition-transform duration-300 group-hover:translate-x-1">
-              <ArrowRight size={16} />
-            </span>
-          </div>
+          <span>·</span>
+          <span>{entry.review_count} reviews</span>
         </div>
-      </article>
-    </button>
+
+      </div>
+
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <button
+                type="button"
+                aria-label={`Add ${entry.name} to AI Chat`}
+                onClick={() =>
+                  window.dispatchEvent(
+                    new CustomEvent(ADD_GLOBAL_AI_CONTEXT_EVENT, {
+                      detail: { placeName: entry.name },
+                    }),
+                  )
+                }
+                className="absolute bottom-3 right-3 z-30 flex size-16 items-center justify-center bg-transparent transition-transform hover:scale-110 focus-visible:rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
+              />
+            }
+          >
+            <img src={aiMascot} alt="" className="size-16 drop-shadow-lg" />
+          </TooltipTrigger>
+          <TooltipContent side="top">Add to AI Chat</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </article>
   );
 }
