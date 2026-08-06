@@ -7,54 +7,38 @@ export default function Navbar() {
   const { user, isAuthenticated, isLoading } = useAuth();
 
   const navItemClass =
-    "text-sm text-white/65 transition-colors hover:text-white";
+    "text-md text-white/80 transition-colors hover:text-white";
   return (
     <header className="relative z-50 px-4 pt-4">
-      <nav className="mx-auto flex h-14 max-w-5xl items-center justify-between rounded-full border border-white/10 bg-zinc-950 px-3 pl-5 text-white shadow-2xl shadow-black/15">
+      <nav className="mx-auto flex h-14 max-w-3xl items-center justify-between rounded-full border border-white/10 bg-zinc-900 px-3 pl-5 text-white shadow-2xl shadow-black/15">
         <Link to="/" className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-zinc-950">
-            <Compass size={17} strokeWidth={2.6} />
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500 text-zinc-950">
+            <Compass size={26} strokeWidth={2.6} />
           </span>
 
-          <span className="hidden text-sm font-bold tracking-tight sm:block">
+          <span className="hidden text-xl font-bold tracking-tight sm:block">
             Bangla Trek
           </span>
         </Link>
 
         <div className="hidden items-center gap-7 md:flex">
-          <a href="/#places" className={navItemClass}>
-            Explore
-          </a>
-
           {isAuthenticated ? (
-            <>
-              <Link to="/emergency" className={navItemClass}>
-                Travel Companion
-              </Link>
-
-              <Link to="/community/new" className={navItemClass}>
-                Contribute
-              </Link>
-            </>
+            <Link to="/emergency" className={navItemClass}>
+              Travel Buddy
+            </Link>
           ) : (
-            <>
-              <button
-                type="button"
-                onClick={loginWithGoogle}
-                className={navItemClass}
-              >
-                Travel Companion
-              </button>
-
-              <button
-                type="button"
-                onClick={loginWithGoogle}
-                className={navItemClass}
-              >
-                Contribute
-              </button>
-            </>
+            <button
+              type="button"
+              onClick={loginWithGoogle}
+              className={navItemClass}
+            >
+              Travel Buddy
+            </button>
           )}
+
+          <Link to="/contribute" className={navItemClass}>
+            Contribute
+          </Link>
         </div>
 
         <div className="flex items-center gap-2">
@@ -90,7 +74,7 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={loginWithGoogle}
-                className="rounded-full px-4 py-2 text-sm font-medium text-white/75 transition-colors hover:text-white"
+                className="rounded-full px-4 py-2 text-lg font-medium text-white/75 transition-colors hover:text-white"
               >
                 Login
               </button>
