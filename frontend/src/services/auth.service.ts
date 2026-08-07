@@ -9,6 +9,16 @@ export const loginWithGoogle = () => {
   window.location.href = `${API_BASE}/api/v1/auth/google`;
 };
 
+// Dev login helper for quick local testing
+export const devLogin = async (email: string, name: string, role: string = "user") => {
+  const res = await api.post<{ access_token: string; user: User }>("/api/v1/auth/dev-login", {
+    email,
+    name,
+    role,
+  });
+  return res.data;
+};
+
 // Clears httpOnly cookies server-side then redirects to /login
 export const logout = async () => {
   await api.post("/api/v1/auth/logout");
@@ -25,3 +35,4 @@ export const currentUserQueryOptions = queryOptions<User>({
   retry: false,
   staleTime: 5 * 60 * 1000, // 5 minutes
 });
+
