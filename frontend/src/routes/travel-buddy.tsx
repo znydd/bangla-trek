@@ -10,6 +10,7 @@ import {
   Users,
   WalletCards,
   Loader2,
+  Trash2,
 } from "lucide-react";
 
 import { toast } from "sonner";
@@ -29,6 +30,8 @@ export type CommunicationPlatform = "WhatsApp" | "Telegram" | "Messenger" | "Ema
 
 export interface PublicTrip {
   id: string;
+  creatorId?: string;
+  isHost?: boolean;
   title: string;
   origin: string;
   destination: string;
@@ -42,12 +45,12 @@ export interface PublicTrip {
   requirements: string[];
   organizerName: string;
   organizerInitials?: string;
-  organizerEmail: string;
+  organizerEmail?: string;
   communicationPlatform: CommunicationPlatform;
   communicationNote: string;
   memberCount: number;
   maxMembers: number;
-  participantEmails: string[];
+  participantEmails?: string[];
   ownedByViewer?: boolean;
 }
 import { useAuth } from "@/hooks/useAuth";
@@ -56,9 +59,9 @@ import {
   fetchPublicTrips,
   createTrip as apiCreateTrip,
   joinTrip as apiJoinTrip,
+  deleteTrip as apiDeleteTrip,
   fetchOrganizerEmailDraft,
   type TravelTripRead,
-  type EmailDraftRead,
 } from "@/services/group-trip.service";
 
 export const Route = createFileRoute("/travel-buddy")({
@@ -94,7 +97,7 @@ function initials(name: string) {
 }
 
 function TravelBuddyPage() {
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
 
   const [query, setQuery] = useState("");
@@ -102,7 +105,8 @@ function TravelBuddyPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const [loginAction, setLoginAction] = useState("");
-  const [emailDraftData, setEmailDraftData] = useState<EmailDraftRead | null>(null);
+  const [joiningTripId, setJoiningTripId] = useState<string | null>(null);
+  const [deletingTripId, setDeletingTripId] = useState<string | null>(null);
 
   // Fetch real trips from backend
   const { data: apiTrips, isLoading } = useQuery({
@@ -110,11 +114,13 @@ function TravelBuddyPage() {
     queryFn: () => fetchPublicTrips({ destination: query }),
   });
 
-  // Convert backend trips or use synthetic fallback
+  // Convert backend trips with Host checks
   const mappedApiTrips: PublicTrip[] = useMemo(() => {
     if (!apiTrips) return [];
     return apiTrips.map((t: TravelTripRead) => ({
       id: t.id,
+      creatorId: t.creator_id,
+      isHost: user?.id === t.creator_id,
       title: t.title,
       organizerName: t.creator_name,
       organizerInitials: initials(t.creator_name),
@@ -127,7 +133,7 @@ function TravelBuddyPage() {
       meetingPoint: "City Center",
       transport: t.transport || "Public Transport",
       estimatedCost: t.estimated_cost_min_bdt ? `৳${t.estimated_cost_min_bdt} - ৳${t.estimated_cost_max_bdt}` : "Budget shared",
-      description: "Travel together with Bangla Trek community.",
+      description: "Travel together with Bongo Vromon community.",
       itinerary: "Day 1: Arrival and local explore.",
       maxMembers: t.max_members,
       memberCount: t.joined_members_count,
@@ -135,7 +141,7 @@ function TravelBuddyPage() {
       communicationNote: "Organizer will send email before trip departure.",
       requirements: ["Friendly attitude", "Timely arrival"],
     }));
-  }, [apiTrips]);
+  }, [apiTrips, user?.id]);
 
   const selectedTrip = mappedApiTrips.find((trip) => trip.id === selectedTripId) ?? null;
 
@@ -146,22 +152,48 @@ function TravelBuddyPage() {
       return;
     }
 
+    setJoiningTripId(tripId);
     try {
       await apiJoinTrip(tripId);
-      toast.success("Successfully joined the travel trip!");
+      toast.success("Successfully joined the trip!");
+      setSelectedTripId(null); // Pop-up automatically closes after successful join
       await queryClient.invalidateQueries({ queryKey: ["travel-trips"] });
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail || "Failed to join trip";
       toast.error(msg);
+    } finally {
+      setJoiningTripId(null);
     }
   };
 
-  const handleFetchEmailDraft = async (tripId: string) => {
+  const handleOpenHostGmail = async (tripId: string) => {
     try {
       const draft = await fetchOrganizerEmailDraft(tripId);
-      setEmailDraftData(draft);
+      if (draft.gmail_url) {
+        window.open(draft.gmail_url, "_blank");
+      } else if (draft.mailto_url) {
+        window.open(draft.mailto_url, "_blank");
+      } else {
+        toast.error("No member emails found to send.");
+      }
     } catch {
-      toast.error("Only the trip organizer can generate participant email drafts.");
+      toast.error("Only the trip host can email members.");
+    }
+  };
+
+  const handleDeleteTrip = async (tripId: string) => {
+    if (!isAuthenticated) return;
+    setDeletingTripId(tripId);
+    try {
+      await apiDeleteTrip(tripId);
+      toast.success("Trip post deleted successfully!");
+      setSelectedTripId(null);
+      await queryClient.invalidateQueries({ queryKey: ["travel-trips"] });
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail || "Failed to delete trip";
+      toast.error(msg);
+    } finally {
+      setDeletingTripId(null);
     }
   };
 
@@ -222,7 +254,7 @@ function TravelBuddyPage() {
               Travel together. Split costs. Stay safe.
             </h1>
             <p className="mt-4 text-base leading-7 text-white/70 sm:text-lg">
-              Find public trips organized by verified travelers or propose your own itinerary across Bangladesh.
+              Find public trips organized by verified travelers or propose your own plan across Bangladesh.
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
               <Button
@@ -306,7 +338,7 @@ function TravelBuddyPage() {
                         {trip.organizerInitials}
                       </div>
                       <span className="text-xs font-semibold text-zinc-800">
-                        {trip.organizerName}
+                        {trip.organizerName} {trip.isHost && "(Host)"}
                       </span>
                     </div>
 
@@ -319,13 +351,49 @@ function TravelBuddyPage() {
                       >
                         Details
                       </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => handleJoinTrip(trip.id)}
-                        className="rounded-lg bg-emerald-600 text-xs font-semibold text-white hover:bg-emerald-700"
-                      >
-                        Join Trip
-                      </Button>
+                      {trip.isHost ? (
+                        <div className="flex gap-1.5">
+                          <Button
+                            size="sm"
+                            onClick={() => void handleOpenHostGmail(trip.id)}
+                            className="rounded-lg bg-emerald-600 text-xs font-semibold text-white hover:bg-emerald-700"
+                            title="Open Gmail to email members"
+                          >
+                            <Mail size={13} className="mr-1" />
+                            Email
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={deletingTripId === trip.id}
+                            onClick={() => void handleDeleteTrip(trip.id)}
+                            className="rounded-lg border-red-200 bg-red-50 p-2 text-xs font-semibold text-red-600 hover:bg-red-100 hover:text-red-700 disabled:opacity-50"
+                            title="Delete your trip post"
+                          >
+                            {deletingTripId === trip.id ? (
+                              <Loader2 size={13} className="animate-spin text-red-600" />
+                            ) : (
+                              <Trash2 size={13} />
+                            )}
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          size="sm"
+                          disabled={joiningTripId === trip.id}
+                          onClick={() => void handleJoinTrip(trip.id)}
+                          className="rounded-lg bg-emerald-600 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+                        >
+                          {joiningTripId === trip.id ? (
+                            <>
+                              <Loader2 size={13} className="mr-1 animate-spin" />
+                              Joining...
+                            </>
+                          ) : (
+                            "Join Trip"
+                          )}
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -340,7 +408,14 @@ function TravelBuddyPage() {
         <Dialog open={!!selectedTrip} onOpenChange={() => setSelectedTripId(null)}>
           <DialogContent className="max-w-2xl rounded-3xl">
             <DialogHeader>
-              <DialogTitle className="text-2xl font-bold">{selectedTrip.title}</DialogTitle>
+              <div className="flex items-center justify-between pr-6">
+                <DialogTitle className="text-2xl font-bold">{selectedTrip.title}</DialogTitle>
+                {selectedTrip.isHost && (
+                  <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">
+                    Host (You)
+                  </span>
+                )}
+              </div>
               <DialogDescription>
                 Organized by {selectedTrip.organizerName} · {selectedTrip.origin} to {selectedTrip.destination}
               </DialogDescription>
@@ -364,62 +439,57 @@ function TravelBuddyPage() {
               </div>
             </div>
 
-            <DialogFooter className="flex justify-between sm:justify-between">
-              <Button
-                variant="outline"
-                onClick={() => handleFetchEmailDraft(selectedTrip.id)}
-              >
-                <Mail size={16} className="mr-1" />
-                Organizer BCC Draft
-              </Button>
-              <Button
-                onClick={() => handleJoinTrip(selectedTrip.id)}
-                className="bg-emerald-600 text-white hover:bg-emerald-700 font-semibold"
-              >
-                Join Trip
-              </Button>
+            <DialogFooter className="flex justify-between items-center gap-2">
+              {selectedTrip.isHost ? (
+                <div className="flex w-full items-center justify-between gap-2">
+                  <Button
+                    variant="outline"
+                    disabled={deletingTripId === selectedTrip.id}
+                    onClick={() => void handleDeleteTrip(selectedTrip.id)}
+                    className="border-red-200 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 font-semibold disabled:opacity-50"
+                  >
+                    {deletingTripId === selectedTrip.id ? (
+                      <>
+                        <Loader2 size={16} className="mr-1.5 animate-spin text-red-600" />
+                        Deleting...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 size={16} className="mr-1.5" />
+                        Delete Trip
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    onClick={() => void handleOpenHostGmail(selectedTrip.id)}
+                    className="bg-emerald-600 text-white hover:bg-emerald-700 font-semibold"
+                  >
+                    <Mail size={16} className="mr-1.5" />
+                    Email Members (CC via Gmail)
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  disabled={joiningTripId === selectedTrip.id}
+                  onClick={() => void handleJoinTrip(selectedTrip.id)}
+                  className="bg-emerald-600 text-white hover:bg-emerald-700 font-semibold disabled:opacity-50"
+                >
+                  {joiningTripId === selectedTrip.id ? (
+                    <>
+                      <Loader2 size={16} className="mr-1.5 animate-spin" />
+                      Joining Trip...
+                    </>
+                  ) : (
+                    "Join Trip"
+                  )}
+                </Button>
+              )}
             </DialogFooter>
           </DialogContent>
         </Dialog>
       )}
 
-      {/* Organizer BCC Email Draft Modal */}
-      {emailDraftData && (
-        <Dialog open={!!emailDraftData} onOpenChange={() => setEmailDraftData(null)}>
-          <DialogContent className="max-w-lg rounded-3xl">
-            <DialogHeader>
-              <DialogTitle className="text-xl font-bold">Organizer Email Draft</DialogTitle>
-              <DialogDescription>
-                BCC addresses for trip participants (Organizer Privileged View).
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-3 py-3 text-sm">
-              <div className="rounded-xl bg-zinc-100 p-3">
-                <p className="text-xs font-semibold text-zinc-500 uppercase">BCC Recipients:</p>
-                <p className="font-mono text-xs mt-1 text-emerald-800 break-all">
-                  {emailDraftData.bcc_emails.join(", ") || "No joined members yet"}
-                </p>
-              </div>
-              <div className="rounded-xl border p-3">
-                <p className="text-xs font-semibold text-zinc-500 uppercase">Subject:</p>
-                <p className="font-semibold text-zinc-800">{emailDraftData.subject}</p>
-                <p className="text-xs font-semibold text-zinc-500 uppercase mt-2">Body:</p>
-                <p className="whitespace-pre-wrap text-zinc-600 mt-1 text-xs">{emailDraftData.body}</p>
-              </div>
-            </div>
-            <DialogFooter>
-              <a
-                href={emailDraftData.mailto_url}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
-              >
-                Open in Email App
-              </a>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+
 
       {/* Create Trip Dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
