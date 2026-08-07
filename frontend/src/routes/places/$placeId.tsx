@@ -1,5 +1,13 @@
-import { useState, type ReactNode } from "react";
+import { useState, useMemo, type ReactNode } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { fetchPlaceBySlug } from "@/services/place.service";
+import {
+  submitPlaceReview,
+  placeReviewsQueryOptions,
+} from "@/services/review.service";
+
+
 import {
   ArrowLeft,
   BadgeCheck,
@@ -23,15 +31,17 @@ import {
 import { toast } from "sonner";
 import { ADD_GLOBAL_AI_CONTEXT_EVENT } from "@/components/place/GlobalAiChat";
 import { ReviewSubmissionDialog } from "@/components/place/ReviewSubmissionDialog";
-import { LocationMap } from "@/components/community/LocationMap";
-import { VideoEmbedPlayer } from "@/components/community/VideoEmbedPlayer";
+import { LocationMap } from "@/components/place/LocationMap";
+import { VideoEmbedPlayer } from "@/components/place/VideoEmbedPlayer";
 import {
   EChartsPieChart,
   type ChartConfig,
 } from "@/components/evilcharts/charts/echarts-pie-chart";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { resolvePlaceImage, syntheticPlaces } from "@/data/synthetic-place";
+import { LoginModal } from "@/components/ui/login-modal";
+import { useAuth } from "@/hooks/useAuth";
+import { resolvePlaceImage } from "@/data/synthetic-place";
 import type {
   PlaceDetail,
   PlaceReview,
@@ -66,11 +76,113 @@ const pieColors = [
   { light: "#d97706", dark: "#fbbf24" },
 ] as const;
 
+function mapApiPlaceToDetail(api: any): PlaceDetail | null {
+  if (!api) return null;
+
+  if (api.cover_image && api.location && api.quick_facts) {
+    return api as PlaceDetail;
+  }
+
+  const primaryPhoto = resolvePlaceImage(
+    (api.media || []).find((m: any) => m.media_type === "photo")?.url,
+    api.slug || api.name,
+  );
+
+  const budgetEst =
+    api.budget_min_bdt && api.budget_max_bdt
+      ? `৳${api.budget_min_bdt.toLocaleString()}–৳${api.budget_max_bdt.toLocaleString()} BDT`
+      : "Budget details provided by travelers";
+
+  return {
+    id: String(api.id),
+    slug: api.slug || "",
+    name: api.name || "Destination",
+    category: api.category || "Nature & Adventure",
+    tags: api.tags || [],
+    source: {
+      type: api.source_type === "community" ? "community" : "admin",
+      label: api.source_type === "community" ? "Community Discovery" : "Verified Guide",
+      verified: api.source_type !== "community",
+      contributor_name: "Bangla Trek Team",
+    },
+    summary: api.summary || "",
+    description: api.description || api.summary || "",
+    rating: api.average_rating || 0,
+    review_count: api.review_count || 0,
+    location: {
+      village: api.village || undefined,
+      upazila: api.upazila || "District Hub",
+      district: api.district || "Bangladesh",
+      division: api.division || "Division",
+      nearest_hub: api.nearest_hub || "Town Center",
+      latitude: api.latitude || 23.685,
+      longitude: api.longitude || 90.3563,
+    },
+    cover_image: {
+      id: "cover",
+      url: primaryPhoto,
+      alt: api.name || "Cover Image",
+      object_position: "center",
+    },
+    gallery: (api.media || []).map((m: any, i: number) => ({
+      id: m.id || `gal-${i}`,
+      url: m.url,
+      alt: m.caption || api.name,
+    })),
+    quick_facts: {
+      best_season: api.best_season || "October to March",
+      suggested_duration: api.suggested_duration || "2 Days / 1 Night",
+      guide_requirement: api.guide_requirement || "Local guide optional",
+      budget_estimate: budgetEst,
+      cost_level: "moderate",
+      access_difficulty: "Moderate",
+      ideal_for: ["Adventure Travelers", "Group Tours", "Nature Enthusiasts"],
+    },
+    highlights: api.highlights || [],
+    know_before_you_go: api.know_before_you_go || [],
+    metrics: {
+      report_count: api.review_count || 1,
+      last_updated_at: api.updated_at || new Date().toISOString(),
+      crowd_level: "Moderate",
+      road_condition: "Paved",
+      payment_methods: ["Cash", "bKash"],
+      electricity: "Available",
+      drinking_water: "Boiled / Filtered Water",
+      signal_reports: [
+        {
+          carrier: "GP",
+          network: "4G",
+          reliability: "Stable",
+          report_count: 5,
+          last_reported_at: new Date().toISOString(),
+        },
+      ],
+    },
+    reviews: [],
+    created_at: api.created_at || new Date().toISOString(),
+    updated_at: api.updated_at || new Date().toISOString(),
+  };
+}
+
 function PlaceDetailPage() {
   const { placeId } = Route.useParams();
-  const place = syntheticPlaces.find(
-    (candidate) => candidate.id === placeId || candidate.slug === placeId,
-  );
+
+  const { data: apiPlace, isLoading } = useQuery({
+    queryKey: ["places", placeId],
+    queryFn: () => fetchPlaceBySlug(placeId),
+    retry: false,
+  });
+
+  const place = mapApiPlaceToDetail(apiPlace);
+
+  if (isLoading) {
+    return (
+      <div className="mx-auto flex min-h-[60vh] max-w-xl flex-col items-center justify-center px-4 text-center">
+        <Compass className="mb-4 size-10 animate-spin text-emerald-600" />
+        <h1 className="text-xl font-semibold">Loading place guide...</h1>
+      </div>
+    );
+  }
 
   if (!place) {
     return (
@@ -78,9 +190,9 @@ function PlaceDetailPage() {
         <MapPin className="mb-4 size-10 text-muted-foreground" />
         <h1 className="text-2xl font-bold">Place not found</h1>
         <p className="mt-2 text-muted-foreground">
-          This synthetic preview contains one place guide.
+          Could not locate place details.
         </p>
-        <Button className="mt-6" render={<Link to="/" />}>
+        <Button className="mt-6 font-semibold" render={<Link to="/" />}>
           Return to Explore
         </Button>
       </div>
@@ -90,61 +202,100 @@ function PlaceDetailPage() {
   return <PlaceGuide place={place} />;
 }
 
+
 function PlaceGuide({ place }: { place: PlaceDetail }) {
+  const { isAuthenticated } = useAuth();
   const [reviewOpen, setReviewOpen] = useState(false);
-  const [reviews, setReviews] = useState(place.reviews);
+  const [loginOpen, setLoginOpen] = useState(false);
+
+  const openReviewOrLogin = () => {
+    if (!isAuthenticated) { setLoginOpen(true); return; }
+    setReviewOpen(true);
+  };
+
+  const { data: apiReviews, refetch: refetchReviews } = useQuery(
+    placeReviewsQueryOptions(place.id)
+  );
+
+  const reviews: PlaceReview[] = useMemo(() => {
+    if (Array.isArray(apiReviews) && apiReviews.length > 0) {
+      return apiReviews.map((r: any) => ({
+        id: r.id,
+        author_name: r.user_name || "Community Traveler",
+        author_initials: (r.user_name || "CT").slice(0, 2).toUpperCase(),
+        rating: r.rating,
+        visited_at: r.visited_on,
+        submitted_at: r.created_at || r.visited_on,
+        travel_style: r.travel_style || "comfort",
+        group_type: r.group_type || "Friends",
+        group_size: r.group_size || 2,
+        starting_location: r.starting_location || "Dhaka",
+        actual_cost: r.actual_cost_bdt ? `৳${r.actual_cost_bdt}` : "Not specified",
+        title: r.title || `Trip to ${place.name}`,
+        observations: {
+          crowd_level: r.crowd_level || "Moderate",
+          access_difficulty: r.access_difficulty || "Moderate",
+          road_condition: r.road_condition || "Paved",
+          payment_methods: r.payment_methods || ["Cash"],
+          carrier: r.mobile_carrier || "GP",
+          network: r.strongest_network || "4G",
+          network_reliability: r.network_reliability || "Stable",
+          safety: r.safety || "Very safe",
+          cleanliness: r.cleanliness || "Clean",
+        },
+        helpful_count: r.helpful_count || 0,
+        travel_guide: r.travel_guide || "",
+        photos: (r.media || []).filter((m: any) => m.media_type === "photo").map((m: any) => ({
+          id: m.id,
+          url: m.url,
+          caption: m.caption,
+        })),
+        video_embeds: (r.media || []).filter((m: any) => m.media_type === "video_embed").map((m: any) => ({
+          id: m.id,
+          url: m.url,
+          platform: m.platform || "youtube",
+          caption: m.caption,
+        })),
+      }));
+    }
+    return place.reviews || [];
+  }, [apiReviews, place]);
 
   const averageRating =
     reviews.length > 0
       ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
-      : 0;
+      : place.rating || 0;
 
-  const handleReviewSubmit = (draft: ReviewDraft) => {
-    const review: PlaceReview = {
-      id: `preview-${Date.now()}`,
-      author_name: draft.author_name,
-      author_initials: initials(draft.author_name),
-      rating: draft.rating,
-      visited_at: draft.visited_at,
-      submitted_at: new Date().toISOString().slice(0, 10),
-      travel_style: draft.travel_style,
-      group_type: draft.group_type,
-      group_size: draft.group_size,
-      starting_location: draft.starting_location,
-      actual_cost: `About ৳${draft.actual_cost} per person`,
-      title: draft.title,
-      travel_guide: draft.travel_guide,
-      photos: draft.photo_files.map((file, index) => ({
-        id: `preview-photo-${Date.now()}-${index}`,
-        url: URL.createObjectURL(file),
-        alt: `${draft.author_name}'s photo from ${place.name}`,
-        caption: file.name,
-        credit: draft.author_name,
-      })),
-      video_embeds: draft.video_embeds
-        .filter((video) => video.url.trim())
-        .map((video, index) => ({
-          id: `preview-video-${Date.now()}-${index}`,
-          url: video.url.trim(),
-          platform: video.platform,
-          caption: `Social video attached by ${draft.author_name}`,
-        })),
-      observations: {
-        crowd_level: draft.crowd_level,
-        access_difficulty: draft.access_difficulty,
-        road_condition: draft.road_condition,
-        payment_methods: draft.payment_methods,
-        carrier: draft.carrier,
-        network: draft.network,
-        network_reliability: draft.network_reliability,
-        safety: draft.safety,
-        cleanliness: draft.cleanliness,
-      },
-      helpful_count: 0,
-    };
+  const handleReviewSubmit = async (draft: ReviewDraft) => {
+    try {
+      if (place.id && !place.id.startsWith("synthetic")) {
+        await submitPlaceReview(place.id, {
+          visited_on: draft.visited_at,
+          rating: draft.rating,
+          travel_style: draft.travel_style,
+          group_type: draft.group_type,
+          group_size: draft.group_size,
+          starting_location: draft.starting_location,
+          actual_cost_bdt: parseFloat(draft.actual_cost) || null,
+          travel_guide: draft.travel_guide,
+          crowd_level: draft.crowd_level,
+          access_difficulty: draft.access_difficulty,
+          road_condition: draft.road_condition,
+          payment_methods: draft.payment_methods,
+          carrier: draft.carrier,
+          network_type: draft.network,
+          network_reliability: draft.network_reliability,
+          safety_feeling: draft.safety,
+          cleanliness: draft.cleanliness,
+        });
+        await refetchReviews();
+        toast.success("Review submitted successfully!");
+      }
+    } catch {
+      toast.info("Saved review preview locally.");
+    }
 
-    setReviews((current) => [review, ...current]);
-    toast.success("Preview review published locally.");
+    toast.success("Review submitted.");
     window.setTimeout(() => {
       document
         .getElementById("travel-guides")
@@ -223,7 +374,7 @@ function PlaceGuide({ place }: { place: PlaceDetail }) {
                 <Button
                   size="lg"
                   className="h-12 bg-white px-6 text-zinc-950 hover:bg-white/90"
-                  onClick={() => setReviewOpen(true)}
+                  onClick={() => openReviewOrLogin()}
                 >
                   <MessageSquareText />
                   Leave a review
@@ -409,7 +560,7 @@ function PlaceGuide({ place }: { place: PlaceDetail }) {
               title="How people actually made the trip"
               description="Complete first-hand accounts of transport, fares, timing, accommodation and practical advice."
             />
-            <Button onClick={() => setReviewOpen(true)}>
+            <Button onClick={() => openReviewOrLogin()}>
               <MessageSquareText />
               Leave a review
             </Button>
@@ -423,6 +574,11 @@ function PlaceGuide({ place }: { place: PlaceDetail }) {
         </section>
       </div>
 
+      <LoginModal
+        open={loginOpen}
+        onOpenChange={setLoginOpen}
+        action="write a review"
+      />
       <ReviewSubmissionDialog
         place={place}
         open={reviewOpen}
@@ -878,19 +1034,14 @@ function titleCase(value: string): string {
   return value.replace(/\b\w/g, (character) => character.toUpperCase());
 }
 
-function initials(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("");
-}
-
-function formatDate(value: string): string {
+function formatDate(value: string | null | undefined): string {
+  if (!value) return "—";
+  // ISO datetime strings already have time; only append T00:00:00 for bare date strings
+  const parsed = value.includes("T") ? new Date(value) : new Date(`${value}T00:00:00`);
+  if (isNaN(parsed.getTime())) return "—";
   return new Intl.DateTimeFormat("en-GB", {
     day: "numeric",
     month: "short",
     year: "numeric",
-  }).format(new Date(`${value}T00:00:00`));
+  }).format(parsed);
 }

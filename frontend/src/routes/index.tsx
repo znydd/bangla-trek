@@ -1,12 +1,7 @@
 import { useState, type SubmitEvent } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-  BadgeCheck,
-  Compass,
-  MapPin,
-  Search,
-  Users,
-} from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { BadgeCheck, Compass, MapPin, Search, Users } from "lucide-react";
 
 import bannerImage from "../../banner.png";
 import aiMascot from "@/data/ai_mascot.svg";
@@ -17,11 +12,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  resolvePlaceImage,
-  syntheticPlaceCards,
-} from "@/data/synthetic-place";
+import { resolvePlaceImage } from "@/data/synthetic-place";
 import type { PlaceCardData } from "@/types/place";
+import { fetchPlaces } from "@/services/place.service";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -33,21 +26,23 @@ function HomePage() {
   const [searchInput, setSearchInput] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
 
-  const normalizedSearch = appliedSearch.toLowerCase();
-  const places = syntheticPlaceCards.filter((place) => {
-    if (!normalizedSearch) return true;
-    return [
-      place.name,
-      place.location.upazila,
-      place.location.district,
-      place.category,
-      ...place.tags,
-    ].some((value) => value.toLowerCase().includes(normalizedSearch));
+  // Query backend places
+  const { data: apiPlaces, isLoading } = useQuery({
+    queryKey: ["places", appliedSearch],
+    queryFn: () => fetchPlaces({ query: appliedSearch }),
   });
+
+  const places: PlaceCardData[] = (apiPlaces as unknown as PlaceCardData[]) || [];
 
   const handleSearch = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     setAppliedSearch(searchInput.trim());
+  };
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const val = event.target.value;
+    setSearchInput(val);
+    setAppliedSearch(val.trim());
   };
 
   return (
@@ -56,9 +51,7 @@ function HomePage() {
         <section
           className="relative flex h-85 overflow-hidden rounded-[2rem] border border-black/10 bg-cover bg-center shadow-xl shadow-black/10 sm:h-95 md:h-105"
           style={{
-            backgroundImage: `
-              url(${bannerImage})
-            `,
+            backgroundImage: `url(${bannerImage})`,
           }}
         >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_20%,rgba(0,0,0,0.18)_100%)]" />
@@ -66,7 +59,7 @@ function HomePage() {
           <div className="relative z-10 flex w-full flex-col items-center px-5 py-6 text-center sm:px-10 md:py-8">
             <div className="flex max-w-4xl flex-col items-center pt-3 md:pt-5">
               <h1 className="max-w-4xl text-4xl font-black leading-[0.95] tracking-[-0.045em] text-white drop-shadow-lg sm:text-5xl md:text-6xl">
-                <span className=" bg-orange-500 ">See </span> <span className=" text-neutral-700">Bangladesh</span>
+                <span className="bg-orange-500">See </span> <span className="text-neutral-700">Bangladesh</span>
                 <br />
                 beyond the guidebook
               </h1>
@@ -81,7 +74,7 @@ function HomePage() {
 
                 <Input
                   value={searchInput}
-                  onChange={(event) => setSearchInput(event.target.value)}
+                  onChange={handleInputChange}
                   placeholder="Search Sajek, Sylhet, hidden waterfalls..."
                   className="h-10 flex-1 border-0 bg-transparent px-0 shadow-none focus-visible:border-transparent focus-visible:ring-0"
                 />
@@ -108,15 +101,22 @@ function HomePage() {
           Explore Bangladesh
         </div>
 
-        {places.length === 0 && (
+        {isLoading && (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-80 w-full animate-pulse rounded-[1.75rem] bg-zinc-200" />
+            ))}
+          </div>
+        )}
+
+        {!isLoading && places.length === 0 && (
           <div className="rounded-3xl border border-dashed border-zinc-300 bg-white px-6 py-16 text-center">
             <Search className="mx-auto mb-4 text-zinc-400" size={32} />
             <h3 className="text-lg font-semibold text-zinc-950">
-              No synthetic places match that search
+              No places match that search
             </h3>
             <p className="mt-1 text-sm text-zinc-500">
-              This UI preview currently contains one place. Clear the search to
-              see it.
+              Clear the search to explore all places.
             </p>
             <button
               type="button"
@@ -131,10 +131,10 @@ function HomePage() {
           </div>
         )}
 
-        {places.length > 0 && (
+        {!isLoading && places.length > 0 && (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {places.map((entry) => (
-              <LandingPlaceCard key={entry.id} entry={entry} />
+              <LandingPlaceCard key={entry.id || entry.slug} entry={entry} />
             ))}
           </div>
         )}
@@ -143,16 +143,18 @@ function HomePage() {
   );
 }
 
-function LandingPlaceCard({ entry }: { entry: PlaceCardData }) {
-  const photo = resolvePlaceImage(entry.cover_image);
-  const isVerified = entry.source.verified;
+function LandingPlaceCard({ entry }: { entry: any }) {
+  const photo = resolvePlaceImage(entry.primary_image_url || entry.cover_image, entry.slug || entry.name);
+  const isVerified = entry.source?.verified ?? true;
+  const district = entry.district || entry.location?.district;
+  const upazila = entry.upazila || entry.location?.upazila;
+  const ratingVal = entry.average_rating ?? entry.rating;
 
   return (
     <article className="group relative h-80 w-full overflow-hidden rounded-[1.75rem] border border-black/10 bg-zinc-900 text-left shadow-sm">
       <img
         src={photo}
-        alt={entry.cover_image.alt}
-        style={{ objectPosition: entry.cover_image.object_position }}
+        alt={entry.name}
         className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
       />
 
@@ -179,7 +181,7 @@ function LandingPlaceCard({ entry }: { entry: PlaceCardData }) {
         )}
       </div>
 
-      {entry.tags[0] && (
+      {entry.tags && entry.tags[0] && (
         <span className="pointer-events-none absolute right-4 top-4 z-20 rounded-full border border-white/25 bg-white/15 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-md">
           {entry.tags[0]}
         </span>
@@ -194,17 +196,16 @@ function LandingPlaceCard({ entry }: { entry: PlaceCardData }) {
 
         <p className="mt-2 flex items-center gap-1.5 text-sm font-medium text-white/90">
           <MapPin size={15} />
-          {entry.location.upazila}, {entry.location.district}
+          {upazila ? `${upazila}, ` : ""}{district}
         </p>
 
         <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-medium text-white/90">
           <span className="font-bold text-amber-300">
-            ★ {entry.rating?.toFixed(1) ?? "New"}
+            ★ {typeof ratingVal === "number" && ratingVal > 0 ? ratingVal.toFixed(1) : "New"}
           </span>
           <span>·</span>
-          <span>{entry.review_count} reviews</span>
+          <span>{entry.review_count ?? 0} reviews</span>
         </div>
-
       </div>
 
       <TooltipProvider>
@@ -217,7 +218,7 @@ function LandingPlaceCard({ entry }: { entry: PlaceCardData }) {
                 onClick={() =>
                   window.dispatchEvent(
                     new CustomEvent(ADD_GLOBAL_AI_CONTEXT_EVENT, {
-                      detail: { placeName: entry.name },
+                      detail: { placeName: entry.name, placeId: entry.id },
                     }),
                   )
                 }

@@ -1,5 +1,6 @@
 import { useState, type ReactNode, type SubmitEvent } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -17,17 +18,17 @@ import {
   Star,
 } from "lucide-react";
 import { toast } from "sonner";
-import { PhotoUploader } from "@/components/community/PhotoUploader";
-import { VideoEmbedInput } from "@/components/community/VideoEmbedInput";
+import { PhotoUploader } from "@/components/place/PhotoUploader";
+import { VideoEmbedInput } from "@/components/place/VideoEmbedInput";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  resolvePlaceImage,
-  syntheticPlaceCards,
-} from "@/data/synthetic-place";
+import { resolvePlaceImage } from "@/data/synthetic-place";
+import { checkDuplicatePlace } from "@/services/place.service";
+import { useAuth } from "@/hooks/useAuth";
+import { LoginModal } from "@/components/ui/login-modal";
 import type { VideoEmbed } from "@/types/community";
 
 export const Route = createFileRoute("/contribute")({
@@ -78,10 +79,12 @@ const networkOptions = ["No signal", "2G", "3G", "4G", "5G"];
 const reliabilityOptions = ["Stable", "Intermittent", "Limited areas"];
 
 function ContributePlacePage() {
+  const { isAuthenticated } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchComplete, setSearchComplete] = useState(false);
   const [formUnlocked, setFormUnlocked] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
   const [placePhotos, setPlacePhotos] = useState<File[]>([]);
   const [reviewPhotos, setReviewPhotos] = useState<File[]>([]);
   const [reviewVideos, setReviewVideos] = useState<VideoDraft[]>([]);
@@ -89,27 +92,26 @@ function ContributePlacePage() {
   const [paymentMethods, setPaymentMethods] = useState<string[]>(["Cash"]);
   const [rating, setRating] = useState(5);
 
-  const normalizedQuery = searchQuery.trim().toLowerCase();
-  const queryTokens = normalizedQuery.split(/\s+/).filter(Boolean);
-  const matches = searchComplete
-    ? syntheticPlaceCards.filter((place) =>
-        queryTokens.every((token) =>
-          [
-          place.name,
-          place.location.upazila,
-          place.location.district,
-          place.category,
-          ...place.tags,
-          ]
-            .join(" ")
-            .toLowerCase()
-            .includes(token),
-        ),
-      )
-    : [];
-  const exactDuplicate = matches.some((match) =>
-    normalizedQuery.includes(match.name.toLowerCase()),
-  );
+  const { data: duplicateResult } = useQuery({
+    queryKey: ["places", "duplicate-check", searchQuery],
+    queryFn: () => checkDuplicatePlace({ name: searchQuery }),
+    enabled: searchComplete && searchQuery.trim().length > 0,
+  });
+
+  const matches = (duplicateResult?.matches || []).map((p: any) => ({
+    id: p.id,
+    slug: p.slug,
+    name: p.name,
+    category: p.category,
+    tags: [],
+    summary: p.summary,
+    rating: 5,
+    review_count: 1,
+    location: { upazila: p.upazila || "", district: p.district || "" },
+    cover_image: null,
+    source: { verified: true },
+  }));
+  const exactDuplicate = duplicateResult?.is_duplicate ?? false;
 
   const [place, setPlace] = useState({
     name: "",
@@ -170,6 +172,10 @@ function ContributePlacePage() {
 
   const handleProposalSubmit = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!isAuthenticated) {
+      setLoginOpen(true);
+      return;
+    }
     if (placePhotos.length === 0) {
       toast.error("Add at least one clear place photo before submitting.");
       document
@@ -189,6 +195,7 @@ function ContributePlacePage() {
   if (submitted) {
     return (
       <div className="min-h-[75vh] bg-[#f7f7f2] px-4 py-16">
+        <LoginModal open={loginOpen} onOpenChange={setLoginOpen} action="submit a place proposal" />
         <div className="mx-auto max-w-2xl rounded-3xl border bg-white p-8 text-center shadow-sm sm:p-12">
           <span className="mx-auto flex size-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
             <ClipboardCheck size={30} />
@@ -230,6 +237,7 @@ function ContributePlacePage() {
 
   return (
     <div className="bg-[#f7f7f2] pb-28">
+      <LoginModal open={loginOpen} onOpenChange={setLoginOpen} action="submit a place proposal" />
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
         <Link
           to="/"
@@ -319,7 +327,7 @@ function ContributePlacePage() {
                 </div>
               </div>
               <div className="mt-4 grid gap-3">
-                {matches.map((match) => (
+                {matches.map((match: any) => (
                   <div
                     key={match.id}
                     className="flex flex-col gap-4 rounded-2xl border bg-white p-3 sm:flex-row sm:items-center"

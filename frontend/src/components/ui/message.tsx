@@ -46,8 +46,7 @@ export type MessageContentProps = {
   children: React.ReactNode
   markdown?: boolean
   className?: string
-} & React.ComponentProps<typeof Markdown> &
-  React.HTMLProps<HTMLDivElement>
+} & React.HTMLProps<HTMLDivElement>
 
 const MessageContent = ({
   children,

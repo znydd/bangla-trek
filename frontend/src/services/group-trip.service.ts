@@ -1,106 +1,116 @@
 import { queryOptions } from "@tanstack/react-query";
 import api from "@/lib/api";
-import type {
-  GroupTrip,
-  GroupTripDetail,
-  GroupTripPreview,
-  GroupTripListParams,
-  CreateGroupTripPayload,
-  UpdateGroupTripPayload,
-  OverlappingTrip,
-} from "@/types/group-trip";
-import type { PaginatedResponse } from "@/types/community";
 
-const BASE = "/api/v1/group-trips";
+export interface TravelTripRead {
+  id: string;
+  creator_id: string;
+  creator_name: string;
+  creator_picture_url?: string | null;
+  title: string;
+  origin: string;
+  destination: string;
+  start_at: string;
+  end_at: string;
+  transport?: string | null;
+  estimated_cost_min_bdt?: number | null;
+  estimated_cost_max_bdt?: number | null;
+  max_members: number;
+  joined_members_count: number;
+  status: string;
+  created_at: string;
+}
 
-// --- Query options ---
+export interface TravelTripMemberPublicRead {
+  user_id: string;
+  name: string;
+  picture_url?: string | null;
+  role: string;
+  status: string;
+  joined_at: string;
+}
 
-export const groupTripsQueryOptions = (params: GroupTripListParams = {}) =>
-  queryOptions<PaginatedResponse<GroupTrip>>({
-    queryKey: ["group-trips", "public", params],
-    queryFn: async () => {
-      const res = await api.get<PaginatedResponse<GroupTrip>>(BASE, { params });
-      return res.data;
-    },
-  });
+export interface TravelTripDetailRead {
+  id: string;
+  creator_id: string;
+  creator_name: string;
+  creator_picture_url?: string | null;
+  title: string;
+  origin: string;
+  destination: string;
+  start_at: string;
+  end_at: string;
+  meeting_point?: string | null;
+  transport?: string | null;
+  estimated_cost_min_bdt?: number | null;
+  estimated_cost_max_bdt?: number | null;
+  description?: string | null;
+  itinerary?: string | null;
+  max_members: number;
+  joined_members_count: number;
+  status: string;
+  communication_platform?: string | null;
+  communication_note?: string | null;
+  requirements: Array<{ id: string; requirement: string; sort_order: number }>;
+  members: TravelTripMemberPublicRead[];
+  created_at: string;
+  updated_at: string;
+}
 
-export const myGroupTripsQueryOptions = (params: GroupTripListParams = {}) =>
-  queryOptions<PaginatedResponse<GroupTrip>>({
-    queryKey: ["group-trips", "my", params],
-    queryFn: async () => {
-      const res = await api.get<PaginatedResponse<GroupTrip>>(`${BASE}/my`, {
-        params,
-      });
-      return res.data;
-    },
-  });
+export interface EmailDraftRead {
+  trip_id: string;
+  trip_title: string;
+  bcc_emails: string[];
+  subject: string;
+  body: string;
+  mailto_url: string;
+}
 
-export const groupTripDetailQueryOptions = (tripId: string) =>
-  queryOptions<GroupTripDetail>({
-    queryKey: ["group-trips", tripId],
-    queryFn: async () => {
-      const res = await api.get<GroupTripDetail>(`${BASE}/${tripId}`);
-      return res.data;
-    },
-  });
+const BASE = "/api/v1/travel-trips";
 
-export const invitePreviewQueryOptions = (inviteCode: string) =>
-  queryOptions<GroupTripPreview>({
-    queryKey: ["group-trips", "invite-preview", inviteCode],
-    queryFn: async () => {
-      const res = await api.get<GroupTripPreview>(
-        `${BASE}/invite/${inviteCode}/preview`
-      );
-      return res.data;
-    },
-  });
-
-export const discoverOverlappingQueryOptions = (
-  destination: string,
-  startDate: string,
-  endDate: string
-) =>
-  queryOptions<OverlappingTrip[]>({
-    queryKey: ["group-trips", "discover", destination, startDate, endDate],
-    queryFn: async () => {
-      const res = await api.get<OverlappingTrip[]>(`${BASE}/discover`, {
-        params: {
-          destination,
-          start_date: startDate,
-          end_date: endDate,
-        },
-      });
-      return res.data;
-    },
-    enabled: !!destination && !!startDate && !!endDate,
-  });
-
-// --- Mutations ---
-
-export const createGroupTrip = async (payload: CreateGroupTripPayload) => {
-  const res = await api.post<GroupTripDetail>(BASE, payload);
+export const fetchPublicTrips = async (params?: { origin?: string; destination?: string }) => {
+  const res = await api.get<TravelTripRead[]>(BASE, { params });
   return res.data;
 };
 
-export const updateGroupTrip = async (
-  tripId: string,
-  payload: UpdateGroupTripPayload
-) => {
-  const res = await api.put<GroupTripDetail>(`${BASE}/${tripId}`, payload);
+export const travelTripsQueryOptions = (params?: { origin?: string; destination?: string }) =>
+  queryOptions<TravelTripRead[]>({
+    queryKey: ["travel-trips", "public", params],
+    queryFn: () => fetchPublicTrips(params),
+  });
+
+export const fetchTripDetail = async (tripId: string) => {
+  const res = await api.get<TravelTripDetailRead>(`${BASE}/${tripId}`);
   return res.data;
 };
 
-export const joinGroupTrip = async (inviteCode: string) => {
-  const res = await api.post<GroupTripDetail>(`${BASE}/join/${inviteCode}`);
+export const tripDetailQueryOptions = (tripId: string) =>
+  queryOptions<TravelTripDetailRead>({
+    queryKey: ["travel-trips", tripId],
+    queryFn: () => fetchTripDetail(tripId),
+    enabled: !!tripId,
+  });
+
+export const createTrip = async (payload: Record<string, unknown>) => {
+  const res = await api.post<TravelTripDetailRead>(BASE, payload);
   return res.data;
 };
 
-export const leaveGroupTrip = async (tripId: string) => {
-  const res = await api.delete(`${BASE}/${tripId}/leave`);
+export const joinTrip = async (tripId: string) => {
+  const res = await api.post<TravelTripDetailRead>(`${BASE}/${tripId}/join`);
   return res.data;
 };
 
-export const deleteGroupTrip = async (tripId: string) => {
-  const res = await api.delete(`${BASE}/${tripId}`);
+export const leaveTrip = async (tripId: string) => {
+  const res = await api.delete(`${BASE}/${tripId}/membership`);
+  return res.data;
+};
+
+export const cancelTrip = async (tripId: string) => {
+  const res = await api.post(`${BASE}/${tripId}/cancel`);
+  return res.data;
+};
+
+export const fetchOrganizerEmailDraft = async (tripId: string) => {
+  const res = await api.get<EmailDraftRead>(`${BASE}/${tripId}/email-draft`);
   return res.data;
 };
