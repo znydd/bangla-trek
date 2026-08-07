@@ -143,3 +143,4 @@ class EmailDraftRead(BaseModel):
     subject: str
     body: str
     mailto_url: str
+    gmail_url: str | None = None

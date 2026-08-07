@@ -56,6 +56,16 @@ export interface TravelTripDetailRead {
   updated_at: string;
 }
 
+export interface TravelTripParticipantRead {
+  user_id: string;
+  name: string;
+  email: string;
+  picture_url?: string | null;
+  role: string;
+  status: string;
+  joined_at: string;
+}
+
 export interface EmailDraftRead {
   trip_id: string;
   trip_title: string;
@@ -63,6 +73,7 @@ export interface EmailDraftRead {
   subject: string;
   body: string;
   mailto_url: string;
+  gmail_url?: string | null;
 }
 
 const BASE = "/api/v1/travel-trips";
@@ -112,5 +123,15 @@ export const cancelTrip = async (tripId: string) => {
 
 export const fetchOrganizerEmailDraft = async (tripId: string) => {
   const res = await api.get<EmailDraftRead>(`${BASE}/${tripId}/email-draft`);
+  return res.data;
+};
+
+export const fetchOrganizerParticipants = async (tripId: string) => {
+  const res = await api.get<TravelTripParticipantRead[]>(`${BASE}/${tripId}/participants`);
+  return res.data;
+};
+
+export const deleteTrip = async (tripId: string) => {
+  const res = await api.delete(`${BASE}/${tripId}`);
   return res.data;
 };

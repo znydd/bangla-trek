@@ -325,6 +325,22 @@ class TripService:
         self.db.commit()
         return {"message": "Trip cancelled successfully"}
 
+    def delete_trip(self, trip_id: uuid.UUID, organizer_id: uuid.UUID) -> dict:
+        """Delete a trip post permanently (Organizer only)."""
+        trip = (
+            self.db.query(TravelTrip)
+            .filter(TravelTrip.id == trip_id, TravelTrip.creator_id == organizer_id)
+            .first()
+        )
+        if not trip:
+            raise HTTPException(status_code=404, detail="Trip not found or unauthorized")
+
+        self.db.query(TravelTripMember).filter(TravelTripMember.trip_id == trip_id).delete()
+        self.db.query(TravelTripRequirement).filter(TravelTripRequirement.trip_id == trip_id).delete()
+        self.db.delete(trip)
+        self.db.commit()
+        return {"message": "Trip deleted successfully"}
+
     def get_organizer_participants(
         self, trip_id: uuid.UUID, organizer_id: uuid.UUID
     ) -> List[TravelTripParticipantRead]:
@@ -369,25 +385,27 @@ class TripService:
         trip = self.db.query(TravelTrip).filter(TravelTrip.id == trip_id).first()
 
         # Extract emails excluding organizer
-        bcc_emails = [p.email for p in participants if p.user_id != organizer_id]
+        cc_emails = [p.email for p in participants if p.user_id != organizer_id]
 
-        subject = f"Bangla Trek Group Trip: {trip.title}"
+        subject = f"Bongo Vromon Trip Update: {trip.title}"
         body = (
             f"Hi Travel Buddies!\n\n"
             f"This is an update regarding our trip '{trip.title}' from {trip.origin} to {trip.destination}.\n"
-            f"Departure Date: {trip.start_at.strftime('%Y-%m-%d %H:%M UTC')}\n"
+            f"Departure Date: {trip.start_at.strftime('%Y-%m-%d')}\n"
             f"Meeting Point: {trip.meeting_point or 'TBD'}\n\n"
             f"Looking forward to traveling together!\n"
         )
 
-        bcc_str = ",".join(bcc_emails)
-        mailto_url = f"mailto:?bcc={urllib.parse.quote(bcc_str)}&subject={urllib.parse.quote(subject)}&body={urllib.parse.quote(body)}"
+        cc_str = ",".join(cc_emails)
+        gmail_url = f"https://mail.google.com/mail/?view=cm&fs=1&cc={urllib.parse.quote(cc_str)}&su={urllib.parse.quote(subject)}&body={urllib.parse.quote(body)}"
+        mailto_url = f"mailto:?cc={urllib.parse.quote(cc_str)}&subject={urllib.parse.quote(subject)}&body={urllib.parse.quote(body)}"
 
         return EmailDraftRead(
             trip_id=trip.id,
             trip_title=trip.title,
-            bcc_emails=bcc_emails,
+            bcc_emails=cc_emails,
             subject=subject,
             body=body,
             mailto_url=mailto_url,
+            gmail_url=gmail_url,
         )

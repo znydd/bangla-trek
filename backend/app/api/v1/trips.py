@@ -99,6 +99,17 @@ async def cancel_travel_trip(
     return trip_svc.cancel_trip(trip_id=trip_id, organizer_id=current_user.id)
 
 
+@router.delete("/{trip_id}")
+async def delete_travel_trip(
+    trip_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Protected API: Delete a trip post permanently (Organizer only)."""
+    trip_svc = TripService(db)
+    return trip_svc.delete_trip(trip_id=trip_id, organizer_id=current_user.id)
+
+
 @router.get("/{trip_id}/participants", response_model=List[TravelTripParticipantRead])
 async def list_trip_participants(
     trip_id: uuid.UUID,
