@@ -9,7 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TravelBuddyRouteImport } from './routes/travel-buddy'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ContributeRouteImport } from './routes/contribute'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PlacesPlaceIdRouteImport } from './routes/places/$placeId'
@@ -36,9 +38,19 @@ import { Route as AuthenticatedCommunityEntryIdEditRouteImport } from './routes/
 import { Route as AuthenticatedPlannerItineraryIdAccommodationsIndexRouteImport } from './routes/_authenticated/planner/$itineraryId/accommodations/index'
 import { Route as AuthenticatedPlannerItineraryIdAccommodationsAccommodationIdRouteImport } from './routes/_authenticated/planner/$itineraryId/accommodations/$accommodationId'
 
+const TravelBuddyRoute = TravelBuddyRouteImport.update({
+  id: '/travel-buddy',
+  path: '/travel-buddy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContributeRoute = ContributeRouteImport.update({
+  id: '/contribute',
+  path: '/contribute',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
@@ -189,7 +201,9 @@ const AuthenticatedPlannerItineraryIdAccommodationsAccommodationIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/contribute': typeof ContributeRoute
   '/login': typeof LoginRoute
+  '/travel-buddy': typeof TravelBuddyRoute
   '/authenticated': typeof AuthenticatedAuthenticatedRoute
   '/route-optimizer': typeof AuthenticatedRouteOptimizerRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -216,7 +230,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/contribute': typeof ContributeRoute
   '/login': typeof LoginRoute
+  '/travel-buddy': typeof TravelBuddyRoute
   '/authenticated': typeof AuthenticatedAuthenticatedRoute
   '/route-optimizer': typeof AuthenticatedRouteOptimizerRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -245,7 +261,9 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/contribute': typeof ContributeRoute
   '/login': typeof LoginRoute
+  '/travel-buddy': typeof TravelBuddyRoute
   '/_authenticated/authenticated': typeof AuthenticatedAuthenticatedRoute
   '/_authenticated/route-optimizer': typeof AuthenticatedRouteOptimizerRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -274,7 +292,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/contribute'
     | '/login'
+    | '/travel-buddy'
     | '/authenticated'
     | '/route-optimizer'
     | '/auth/callback'
@@ -301,7 +321,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/contribute'
     | '/login'
+    | '/travel-buddy'
     | '/authenticated'
     | '/route-optimizer'
     | '/auth/callback'
@@ -329,7 +351,9 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/contribute'
     | '/login'
+    | '/travel-buddy'
     | '/_authenticated/authenticated'
     | '/_authenticated/route-optimizer'
     | '/auth/callback'
@@ -358,18 +382,34 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  ContributeRoute: typeof ContributeRoute
   LoginRoute: typeof LoginRoute
+  TravelBuddyRoute: typeof TravelBuddyRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   PlacesPlaceIdRoute: typeof PlacesPlaceIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/travel-buddy': {
+      id: '/travel-buddy'
+      path: '/travel-buddy'
+      fullPath: '/travel-buddy'
+      preLoaderRoute: typeof TravelBuddyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contribute': {
+      id: '/contribute'
+      path: '/contribute'
+      fullPath: '/contribute'
+      preLoaderRoute: typeof ContributeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -612,7 +652,9 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  ContributeRoute: ContributeRoute,
   LoginRoute: LoginRoute,
+  TravelBuddyRoute: TravelBuddyRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   PlacesPlaceIdRoute: PlacesPlaceIdRoute,
 }

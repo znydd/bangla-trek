@@ -22,19 +22,9 @@ export default function Navbar() {
         </Link>
 
         <div className="hidden items-center gap-7 md:flex">
-          {isAuthenticated ? (
-            <Link to="/emergency" className={navItemClass}>
-              Travel Buddy
-            </Link>
-          ) : (
-            <button
-              type="button"
-              onClick={loginWithGoogle}
-              className={navItemClass}
-            >
-              Travel Buddy
-            </button>
-          )}
+          <Link to="/travel-buddy" className={navItemClass}>
+            Travel Buddy
+          </Link>
 
           <Link to="/contribute" className={navItemClass}>
             Contribute
