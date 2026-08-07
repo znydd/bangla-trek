@@ -135,7 +135,7 @@
     transform: translateY(0) rotate(-2deg);
   }
   50% {
-    transform: translateY(-10px) rotate(2deg);
+    transform: translateY(-12px) rotate(3deg);
   }
 }
 
@@ -144,8 +144,37 @@
   will-change: transform;
 }
 
+@keyframes float-up-glitter {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.3) rotate(0deg);
+  }
+  25% {
+    opacity: 1;
+    transform: translateY(-25px) scale(1.2) rotate(45deg);
+  }
+  65% {
+    opacity: 0.85;
+    transform: translateY(-65px) scale(0.9) rotate(90deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-105px) scale(0.2) rotate(180deg);
+  }
+}
+
+.glitter-particle {
+  position: absolute;
+  pointer-events: none;
+  animation: float-up-glitter 2.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+  will-change: transform, opacity;
+  font-family: sans-serif;
+  user-select: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .ai-mascot-hover {
+  .ai-mascot-hover,
+  .glitter-particle {
     animation: none;
   }
 }

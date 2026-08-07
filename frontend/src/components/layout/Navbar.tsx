@@ -6,7 +6,7 @@ import { loginWithGoogle, logout } from "@/services/auth.service";
 import { LoginModal } from "@/components/ui/login-modal";
 
 export default function Navbar() {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [loginOpen, setLoginOpen] = useState(false);
   const [loginAction, setLoginAction] = useState("");
 
@@ -60,10 +60,9 @@ export default function Navbar() {
 
           {/* Auth section */}
           <div className="flex items-center gap-2">
-            {isLoading ? (
-              <div className="h-9 w-20 animate-pulse rounded-full bg-white/10" />
-            ) : isAuthenticated && user ? (
+            {isAuthenticated && user ? (
               <>
+                {/* Profile avatar */}
                 {user.picture_url ? (
                   <img
                     src={user.picture_url}
@@ -76,10 +75,12 @@ export default function Navbar() {
                   </div>
                 )}
 
+                {/* Name */}
                 <span className="hidden max-w-28 truncate text-sm font-medium sm:block">
                   {user.name.split(" ")[0]}
                 </span>
 
+                {/* Logout */}
                 <button
                   type="button"
                   onClick={logout}

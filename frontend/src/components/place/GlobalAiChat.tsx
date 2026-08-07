@@ -462,29 +462,74 @@ export function GlobalAiChat({
         action="use the AI travel assistant"
       />
       {!visible && (
-        <button
-          type="button"
-          aria-label="Open AI sidebar"
-          title="Ask Bangla Trek AI"
-          onClick={() => {
-            if (!isAuthenticated) {
-              setLoginOpen(true);
-            } else {
-              setAssistantOpen(true);
-            }
-          }}
-          className="group fixed bottom-12 right-12 z-[60] flex size-[160px] items-center justify-center rounded-full bg-transparent p-0 transition-transform hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 sm:bottom-16 sm:right-16"
-        >
-          <span
+        <div className="fixed bottom-10 right-10 z-[60] flex items-center justify-center pointer-events-none">
+          {/* Soft multi-color glowing aura matching star colors */}
+          <div
             aria-hidden="true"
-            className="absolute bottom-1 h-3 w-11 rounded-full bg-violet-500/20 blur-md transition-transform group-hover:scale-125"
+            className="absolute size-36 rounded-full bg-gradient-to-tr from-emerald-400/40 via-rose-500/30 to-amber-400/40 blur-2xl animate-pulse"
           />
-          <img
-            src={aiMascot}
-            alt=""
-            className="ai-mascot-hover relative size-[100px] drop-shadow-lg"
-          />
-        </button>
+
+          {/* Magical Rising Glitter Particles */}
+          <div aria-hidden="true" className="absolute inset-0">
+            <span
+              className="glitter-particle left-2 bottom-12 text-sm text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.9)]"
+              style={{ animationDelay: "0s", animationDuration: "2.5s" }}
+            >
+              ✦
+            </span>
+            <span
+              className="glitter-particle right-3 bottom-14 text-xs text-rose-500 drop-shadow-[0_0_8px_rgba(244,63,94,0.9)]"
+              style={{ animationDelay: "0.5s", animationDuration: "2.8s" }}
+            >
+              ✦
+            </span>
+            <span
+              className="glitter-particle left-8 bottom-16 text-base text-amber-300 drop-shadow-[0_0_10px_rgba(251,191,36,0.95)]"
+              style={{ animationDelay: "1.0s", animationDuration: "2.2s" }}
+            >
+              ★
+            </span>
+            <span
+              className="glitter-particle right-8 bottom-10 text-[10px] text-emerald-300 drop-shadow-[0_0_6px_rgba(52,211,153,0.85)]"
+              style={{ animationDelay: "1.5s", animationDuration: "3.0s" }}
+            >
+              ✦
+            </span>
+            <span
+              className="glitter-particle left-12 bottom-8 text-xs text-rose-400 drop-shadow-[0_0_8px_rgba(251,113,133,0.9)]"
+              style={{ animationDelay: "1.9s", animationDuration: "2.6s" }}
+            >
+              ✦
+            </span>
+            <span
+              className="glitter-particle right-2 bottom-18 text-sm text-yellow-300 drop-shadow-[0_0_10px_rgba(253,224,71,0.95)]"
+              style={{ animationDelay: "2.3s", animationDuration: "2.4s" }}
+            >
+              ★
+            </span>
+          </div>
+
+          {/* Interactive Floating Mascot Button */}
+          <button
+            type="button"
+            aria-label="Open AI sidebar"
+            title="Ask Bangla Trek AI"
+            onClick={() => {
+              if (!isAuthenticated) {
+                setLoginOpen(true);
+              } else {
+                setAssistantOpen(true);
+              }
+            }}
+            className="group pointer-events-auto relative flex size-28 items-center justify-center rounded-full bg-transparent p-0 transition-transform duration-300 hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
+          >
+            <img
+              src={aiMascot}
+              alt="Bangla Trek AI Mascot"
+              className="ai-mascot-hover relative size-24 drop-shadow-[0_12px_20px_rgba(0,0,0,0.3)] transition-transform duration-300 group-hover:scale-105"
+            />
+          </button>
+        </div>
       )}
 
       <Sidebar
