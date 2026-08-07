@@ -10,25 +10,23 @@ api.interceptors.response.use(
   (res) => res,
   async (error) => {
     const originalRequest = error.config;
-    
-    // Don't redirect if we are already trying to refresh or check current user
-    const skipRedirect = 
-      originalRequest.url?.includes("/api/v1/auth/me") || 
+    if (!originalRequest) return Promise.reject(error);
+
+    const isAuthCheck =
+      originalRequest.url?.includes("/api/v1/auth/me") ||
       originalRequest.url?.includes("/api/v1/auth/refresh");
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthCheck) {
       originalRequest._retry = true;
       try {
+        const baseUrl = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
         await axios.post(
-          `${import.meta.env.VITE_API_URL}/api/v1/auth/refresh`,
+          `${baseUrl}/api/v1/auth/refresh`,
           {},
           { withCredentials: true },
         );
         return api(originalRequest);
       } catch (refreshError) {
-        if (!skipRedirect) {
-          window.location.href = "/login";
-        }
         return Promise.reject(refreshError);
       }
     }
