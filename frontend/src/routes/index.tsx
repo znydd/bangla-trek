@@ -1,7 +1,7 @@
 import { useState, type SubmitEvent } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { BadgeCheck, Compass, MapPin, Search, Users } from "lucide-react";
+import { BadgeCheck, Compass, MapPin, Search, Users, Loader2 } from "lucide-react";
 
 import bannerImage from "../../banner.png";
 import aiMascot from "@/data/ai_mascot.svg";
@@ -102,10 +102,17 @@ function HomePage() {
         </div>
 
         {isLoading && (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-80 w-full animate-pulse rounded-[1.75rem] bg-zinc-200" />
-            ))}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-xs font-semibold text-zinc-500">
+              <Loader2 size={14} className="animate-spin text-emerald-600 shrink-0" />
+              <span>Connecting to Bongo Vromon cloud server...</span>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {[1, 2, 3, 4].map((i) => (
+                <SkeletonPlaceCard key={i} />
+              ))}
+            </div>
           </div>
         )}
 
@@ -232,5 +239,28 @@ function LandingPlaceCard({ entry }: { entry: any }) {
         </Tooltip>
       </TooltipProvider>
     </article>
+  );
+}
+
+function SkeletonPlaceCard() {
+  return (
+    <div className="relative h-80 w-full overflow-hidden rounded-[1.75rem] border border-black/10 bg-zinc-100 p-5 shadow-xs animate-pulse flex flex-col justify-between">
+      {/* Top Badges Skeleton */}
+      <div className="flex items-center justify-between">
+        <div className="h-6 w-24 rounded-full bg-zinc-200" />
+        <div className="h-6 w-16 rounded-full bg-zinc-200" />
+      </div>
+
+      {/* Bottom Content Skeleton */}
+      <div className="space-y-3">
+        <div className="h-6 w-3/4 rounded-lg bg-zinc-300" />
+        <div className="h-4 w-1/2 rounded-lg bg-zinc-200" />
+
+        <div className="flex items-center justify-between border-t border-zinc-200 pt-3">
+          <div className="h-5 w-12 rounded-full bg-zinc-200" />
+          <div className="h-8 w-24 rounded-xl bg-zinc-200" />
+        </div>
+      </div>
+    </div>
   );
 }
