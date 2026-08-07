@@ -1,140 +1,107 @@
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { Compass, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { logout, loginWithGoogle } from "@/services/auth.service";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { User as UserIcon, LogOut, ChevronDown, Map, Compass, UsersRound, Navigation } from "lucide-react";
-import { User as UserIcon, LogOut, ChevronDown, Map, Compass, UsersRound, ShieldAlert, Footprints } from "lucide-react";
+import { loginWithGoogle, logout } from "@/services/auth.service";
+import { LoginModal } from "@/components/ui/login-modal";
 
 export default function Navbar() {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [loginAction, setLoginAction] = useState("");
+
+  const handleNavClick = (e: React.MouseEvent, action: string) => {
+    if (!isAuthenticated) {
+      e.preventDefault();
+      setLoginAction(action);
+      setLoginOpen(true);
+    }
+  };
+
+  const navItemClass = "text-md text-white/80 transition-colors hover:text-white";
 
   return (
-    <nav className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-8">
+    <>
+      <LoginModal
+        open={loginOpen}
+        onOpenChange={setLoginOpen}
+        action={loginAction}
+      />
+
+      <header className="relative z-50 px-4 pt-4">
+        <nav className="relative mx-auto flex h-14 max-w-3xl items-center justify-between rounded-full border border-white/10 bg-zinc-900 px-3 pl-5 text-white shadow-2xl shadow-black/15">
+          {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <div className="bg-green-600 p-1.5 rounded-lg text-white">
-              <Compass size={20} strokeWidth={2.5} />
-            </div>
-            <span className="font-bold text-xl tracking-tight text-green-700 hidden sm:inline-block">
-              Bangla Trek
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500 text-zinc-950">
+              <Compass size={26} strokeWidth={2.6} />
+            </span>
+            <span className="hidden text-xl font-bold tracking-tight sm:block">
+              Bongo Vromon
             </span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-1">
-            <Button variant="ghost" render={<Link to="/community" activeProps={{ className: "text-foreground bg-muted" }} />} className="font-medium text-muted-foreground hover:text-foreground">
-              <Map size={16} className="mr-2" />
-              Community
-            </Button>
-            <Button variant="ghost" render={<Link to="/social-map" activeProps={{ className: "text-foreground bg-muted" }} />} className="font-medium text-muted-foreground hover:text-foreground">
-              <Map size={16} className="mr-2" />
-              Social Map
-            </Button>
-            <Button variant="ghost" render={<Link to="/buddy-matching" activeProps={{ className: "text-foreground bg-muted" }} />} className="font-medium text-muted-foreground hover:text-foreground">
-              <UsersRound size={16} className="mr-2" />
-              Buddy Matching
-            </Button>
-            <Button variant="ghost" render={<Link to="/planner" activeProps={{ className: "text-foreground bg-muted" }} />} className="font-medium text-muted-foreground hover:text-foreground">
-              <Compass size={16} className="mr-2" />
-              AI Planner
-            </Button>
-            <Button variant="ghost" render={<Link to="/trips" activeProps={{ className: "text-foreground bg-muted" }} />} className="font-medium text-muted-foreground hover:text-foreground">
-              <UsersRound size={16} className="mr-2" />
-              Group Trips
-            </Button>
-            {
-              <Button variant="ghost" render={<Link to="/route-optimizer" activeProps={{ className: "text-foreground bg-muted" }} />} className="font-medium text-muted-foreground hover:text-foreground">
-                <Navigation size={16} className="mr-2" />
-                Route Optimizer
-              </Button>
-            }
-            <Button variant="ghost"
-              render={<Link to="/emergency" activeProps={{ className: "text-foreground bg-muted" }} />} className="font-medium text-muted-foreground hover:text-foreground">
-              <ShieldAlert size={16} className="mr-2" />
-              Emergency
-            </Button>
-            <Button variant="ghost" render={<Link to="/transit-blueprints" activeProps={{ className: "text-foreground bg-muted" }} />} className="font-medium text-muted-foreground hover:text-foreground">
-              <Footprints size={16} className="mr-2" />
-              Transit Blueprints
-            </Button>
+          {/* Nav links — absolutely centered */}
+          <div className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-7 md:flex">
+            <Link
+              to="/travel-buddy"
+              className={navItemClass}
+              onClick={(e) => handleNavClick(e, "use Travel Buddy")}
+            >
+              Travel Buddy
+            </Link>
+            <Link
+              to="/contribute"
+              className={navItemClass}
+              onClick={(e) => handleNavClick(e, "contribute a place")}
+            >
+              Contribute
+            </Link>
           </div>
-        </div>
 
-        <div className="flex items-center gap-3">
-          {isLoading ? (
-            <div className="h-8 w-24 bg-muted animate-pulse rounded-lg" />
-          ) : isAuthenticated && user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger render={<Button variant="ghost" className="relative flex items-center gap-2 pr-1 h-10 rounded-full hover:bg-muted" />}>
-                <div className="h-7 w-7 rounded-full overflow-hidden border bg-muted shrink-0">
-                  {user.picture_url ? (
-                    <img src={user.picture_url} alt={user.name} className="h-full w-full object-cover" />
-                  ) : (
-                    <div className="h-full w-full flex items-center justify-center bg-primary/10 text-primary">
-                      <UserIcon size={14} />
-                    </div>
-                  )}
-                </div>
-                <span className="text-sm font-medium hidden sm:inline-block max-w-[100px] truncate">
-                  {user.name.split(' ')[0]}
+          {/* Auth section */}
+          <div className="flex items-center gap-2">
+            {isAuthenticated && user ? (
+              <>
+                {/* Profile avatar */}
+                {user.picture_url ? (
+                  <img
+                    src={user.picture_url}
+                    alt={user.name}
+                    className="h-9 w-9 rounded-full border-2 border-emerald-500 object-cover"
+                  />
+                ) : (
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-emerald-500 bg-emerald-700 text-sm font-bold text-white">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+
+                {/* Name */}
+                <span className="hidden max-w-28 truncate text-sm font-medium sm:block">
+                  {user.name.split(" ")[0]}
                 </span>
-                <ChevronDown size={14} className="text-muted-foreground" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 mt-1">
-                <div className="flex items-center gap-2 p-2 px-3 border-b mb-1">
-                  <div className="h-9 w-9 rounded-full overflow-hidden border bg-muted">
-                    {user.picture_url ? (
-                      <img src={user.picture_url} alt={user.name} className="h-full w-full object-cover" />
-                    ) : (
-                      <div className="h-full w-full flex items-center justify-center bg-primary/10 text-primary">
-                        <UserIcon size={16} />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex flex-col overflow-hidden">
-                    <span className="text-sm font-semibold truncate">{user.name}</span>
-                    <span className="text-xs text-muted-foreground truncate">{user.email}</span>
-                  </div>
-                </div>
-                <DropdownMenuItem render={<Link to="/community" className="w-full" />}>
-                  Community Explore
-                </DropdownMenuItem>
-                <DropdownMenuItem render={<Link to="/social-map" className="w-full" />}>
-                  Social Map
-                </DropdownMenuItem>
-                <DropdownMenuItem render={<Link to="/buddy-matching" className="w-full" />}>
-                  Buddy Matching
-                </DropdownMenuItem>
-                <DropdownMenuItem render={<Link to="/trips" className="w-full" />}>
-                  Group Trips
-                </DropdownMenuItem>
-                <DropdownMenuItem render={<Link to="/route-optimizer" className="w-full" />}>
-                  Route Optimizer
-                <DropdownMenuItem render={<Link to="/emergency" className="w-full" />}>
-                  Emergency Hub
-                </DropdownMenuItem>
-                <DropdownMenuItem render={<Link to="/transit-blueprints" className="w-full" />}>
-                  Transit Blueprints
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={logout} variant="destructive">
-                  <LogOut size={16} className="mr-2" />
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <Button onClick={loginWithGoogle} size="sm" className="rounded-full px-5">
-              Login
-            </Button>
-          )}
-        </div>
-      </div>
-    </nav>
+
+                {/* Logout */}
+                <button
+                  type="button"
+                  onClick={logout}
+                  aria-label="Log out"
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-white/50 transition-colors hover:bg-white/10 hover:text-white"
+                >
+                  <LogOut size={16} />
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={loginWithGoogle}
+                className="rounded-full bg-emerald-600 px-7 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-500"
+              >
+                Login
+              </button>
+            )}
+          </div>
+        </nav>
+      </header>
+    </>
   );
 }

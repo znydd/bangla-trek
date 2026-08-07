@@ -6,4 +6,3 @@ __pycache__
 draft
 node_modules
 dist
-uv.lock

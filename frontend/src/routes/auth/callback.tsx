@@ -1,22 +1,25 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { currentUserQueryOptions } from "@/services/auth.service";
 
 export const Route = createFileRoute("/auth/callback")({
   component: AuthCallback,
 });
 
 function AuthCallback() {
-  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
-    // Cookies are already set by the backend redirect.
-    // Just navigate — authenticated.tsx beforeLoad will call /auth/me once.
-    navigate({ to: "/authenticated" });
-  }, [navigate]);
+    // Invalidate auth query so user object is refetched with cookie
+    queryClient.invalidateQueries({ queryKey: currentUserQueryOptions.queryKey });
+    // Redirect user to home page
+    window.location.href = "/";
+  }, [queryClient]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <p>Signing you in…</p>
+    <div className="flex items-center justify-center min-h-[70vh]">
+      <p className="text-sm font-semibold text-muted-foreground">Signing you in…</p>
     </div>
   );
 }
