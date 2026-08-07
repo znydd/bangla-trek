@@ -10,9 +10,9 @@ import {
   Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PhotoUploader } from "@/components/community/PhotoUploader";
-import { VideoEmbedInput } from "@/components/community/VideoEmbedInput";
-import { VideoEmbedPlayer } from "@/components/community/VideoEmbedPlayer";
+import { PhotoUploader } from "@/components/place/PhotoUploader";
+import { VideoEmbedInput } from "@/components/place/VideoEmbedInput";
+import { VideoEmbedPlayer } from "@/components/place/VideoEmbedPlayer";
 import {
   Dialog,
   DialogContent,
@@ -370,12 +370,12 @@ export function ReviewSubmissionDialog({
             description="Add your own photos or attach public YouTube, Facebook and TikTok videos from the trip."
           >
             <PhotoUploader
-              onPhotosChange={(files) => update("photo_files", files)}
+              onPhotosChange={(files: File[]) => update("photo_files", files)}
             />
 
             <VideoEmbedInput
               videos={draft.video_embeds}
-              onChange={(videos) => update("video_embeds", videos)}
+              onChange={(videos: any) => update("video_embeds", videos)}
             />
 
             {draft.video_embeds.some((video) => video.url.trim()) && (
