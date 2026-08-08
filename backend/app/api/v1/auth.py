@@ -49,8 +49,8 @@ async def google_callback(code: str, db: Session = Depends(get_db)):
         key="access_token",
         value=access_token,
         httponly=True,
-        secure=settings.IS_PRODUCTION,
-        samesite="lax",
+        secure=True,
+        samesite="none",
         max_age=30 * 60,  # 30 minutes
         path="/",
     )
@@ -58,8 +58,8 @@ async def google_callback(code: str, db: Session = Depends(get_db)):
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        secure=settings.IS_PRODUCTION,
-        samesite="lax",
+        secure=True,
+        samesite="none",
         max_age=7 * 24 * 60 * 60,  # 7 days
         path="/api/v1/auth/refresh",
     )
@@ -91,8 +91,8 @@ async def dev_login(req: DevLoginRequest, db: Session = Depends(get_db)):
         key="access_token",
         value=access_token,
         httponly=True,
-        secure=settings.IS_PRODUCTION,
-        samesite="lax",
+        secure=True,
+        samesite="none",
         max_age=30 * 60,
         path="/",
     )
@@ -100,8 +100,8 @@ async def dev_login(req: DevLoginRequest, db: Session = Depends(get_db)):
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        secure=settings.IS_PRODUCTION,
-        samesite="lax",
+        secure=True,
+        samesite="none",
         max_age=7 * 24 * 60 * 60,
         path="/api/v1/auth/refresh",
     )
@@ -144,8 +144,8 @@ async def refresh_token(request: Request, db: Session = Depends(get_db)):
         key="access_token",
         value=new_access_token,
         httponly=True,
-        secure=settings.IS_PRODUCTION,
-        samesite="lax",
+        secure=True,
+        samesite="none",
         max_age=30 * 60,
         path="/",
     )
