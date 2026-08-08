@@ -1,8 +1,7 @@
+from urllib.parse import urlencode
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy.orm import Session
-
-from urllib.parse import quote
 
 from app.api.deps import get_current_user
 from app.config import settings
@@ -20,16 +19,15 @@ async def google_login():
     """Redirect to Google consent screen."""
     redirect_uri = settings.GOOGLE_REDIRECT_URI
     print(f"[OAUTH DEBUG] GOOGLE_REDIRECT_URI is: '{redirect_uri}'")
-    encoded_redirect_uri = quote(redirect_uri, safe="")
-    google_auth_url = (
-        "https://accounts.google.com/o/oauth2/v2/auth?"
-        f"client_id={settings.GOOGLE_CLIENT_ID}&"
-        f"redirect_uri={encoded_redirect_uri}&"
-        "response_type=code&"
-        "scope=openid email profile&"
-        "access_type=offline&"
-        "prompt=consent"
-    )
+    params = {
+        "client_id": settings.GOOGLE_CLIENT_ID,
+        "redirect_uri": redirect_uri,
+        "response_type": "code",
+        "scope": "openid email profile",
+        "access_type": "offline",
+        "prompt": "consent",
+    }
+    google_auth_url = f"https://accounts.google.com/o/oauth2/v2/auth?{urlencode(params)}"
     return RedirectResponse(url=google_auth_url)
 
 
