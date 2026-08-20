@@ -1,13 +1,12 @@
 import json
 import logging
 import uuid
-from typing import AsyncGenerator, List, Optional
-from fastapi import HTTPException
-from sqlalchemy import func
-from sqlalchemy.orm import Session, joinedload
+from collections.abc import AsyncGenerator
 
+from fastapi import HTTPException
 from google import genai
 from groq import Groq
+from sqlalchemy.orm import Session, joinedload
 
 from app.config import settings
 from app.models.ai import AIConversation, AIConversationPlace, AIMessage
@@ -29,7 +28,7 @@ class AIService:
         self.db = db
 
     def create_conversation(
-        self, user_id: uuid.UUID, title: Optional[str] = "New Conversation"
+        self, user_id: uuid.UUID, title: str | None = "New Conversation"
     ) -> AIConversationRead:
         """Create a new AI conversation."""
         conv = AIConversation(
@@ -41,7 +40,7 @@ class AIService:
         self.db.refresh(conv)
         return AIConversationRead.model_validate(conv)
 
-    def list_conversations(self, user_id: uuid.UUID) -> List[AIConversationRead]:
+    def list_conversations(self, user_id: uuid.UUID) -> list[AIConversationRead]:
         """Fetch all conversations for a user."""
         convs = (
             self.db.query(AIConversation)
@@ -58,7 +57,9 @@ class AIService:
         conv = (
             self.db.query(AIConversation)
             .options(
-                joinedload(AIConversation.context_places).joinedload(AIConversationPlace.place),
+                joinedload(AIConversation.context_places).joinedload(
+                    AIConversationPlace.place
+                ),
                 joinedload(AIConversation.messages),
             )
             .filter(
@@ -213,30 +214,36 @@ class AIService:
 
             review_snippets = []
             for r in recent_reviews:
-                guide_text = (r.travel_guide or "").replace("<", "&lt;").replace(">", "&gt;")
+                guide_text = (
+                    (r.travel_guide or "").replace("<", "&lt;").replace(">", "&gt;")
+                )
                 if len(guide_text) > 250:
                     guide_text = guide_text[:250] + "..."
                 review_snippets.append(
-                    f"  - [{r.visited_on}] Rating: {r.rating}/5 | Cost: {r.actual_cost_bdt or 'N/A'} BDT | Guide: \"{guide_text}\""
+                    f'  - [{r.visited_on}] Rating: {r.rating}/5 | Cost: {r.actual_cost_bdt or "N/A"} BDT | Guide: "{guide_text}"'
                 )
 
-            reviews_block = "\n".join(review_snippets) if review_snippets else "  No written travel guides yet."
+            reviews_block = (
+                "\n".join(review_snippets)
+                if review_snippets
+                else "  No written travel guides yet."
+            )
 
             section = f"""
 Place: {p.name} (Category: {p.category})
-Location: {p.village or ''}, {p.upazila or ''}, {p.district or ''}, {p.division or ''}
+Location: {p.village or ""}, {p.upazila or ""}, {p.district or ""}, {p.division or ""}
 Summary: {p.summary}
-Best Season: {p.best_season or 'N/A'} | Duration: {p.suggested_duration or 'N/A'} | Budget: {p.budget_min_bdt or 'N/A'} - {p.budget_max_bdt or 'N/A'} BDT
-Highlights: {', '.join(p.highlights or [])}
-Know Before You Go: {', '.join(p.know_before_you_go or [])}
+Best Season: {p.best_season or "N/A"} | Duration: {p.suggested_duration or "N/A"} | Budget: {p.budget_min_bdt or "N/A"} - {p.budget_max_bdt or "N/A"} BDT
+Highlights: {", ".join(p.highlights or [])}
+Know Before You Go: {", ".join(p.know_before_you_go or [])}
 
 [Community Review Aggregates via SQL]
 - Total Reviews: {summary.total_reviews}
 - Average Rating: {summary.average_rating}/5
-- Median Cost Reported: {summary.cost_range.median or 'N/A'} BDT
-- Most Common Travel Style: {summary.most_common_travel_style or 'N/A'}
-- Typical Access Difficulty: {summary.typical_access_difficulty or 'N/A'}
-- Most Reported Payment Method: {summary.most_reported_payment_method or 'N/A'}
+- Median Cost Reported: {summary.cost_range.median or "N/A"} BDT
+- Most Common Travel Style: {summary.most_common_travel_style or "N/A"}
+- Typical Access Difficulty: {summary.typical_access_difficulty or "N/A"}
+- Most Reported Payment Method: {summary.most_reported_payment_method or "N/A"}
 
 <user_reviews_data>
 Recent Visitor Travel Guides:
@@ -284,7 +291,15 @@ Recent Visitor Travel Guides:
         self.db.commit()
 
         # Update conversation title dynamically from user's first prompt
-        if conv.title in ("New Conversation", "Bangla Trek Trip Assistant", "Bangla Trek Trip Chat") and len(user_content) > 3:
+        if (
+            conv.title
+            in (
+                "New Conversation",
+                "Bangla Trek Trip Assistant",
+                "Bangla Trek Trip Chat",
+            )
+            and len(user_content) > 3
+        ):
             conv.title = user_content[:40] + ("..." if len(user_content) > 40 else "")
             self.db.commit()
 
@@ -310,7 +325,9 @@ Recent Visitor Travel Guides:
             "5. Maintain a polite, welcoming tone that reflects Bangladeshi hospitality."
         )
 
-        full_prompt = f"{system_instruction}\n\n{context_doc}\n\nUser Question: {user_content}"
+        full_prompt = (
+            f"{system_instruction}\n\n{context_doc}\n\nUser Question: {user_content}"
+        )
 
         full_response_text = ""
         model_name = "synthetic-assistant"
@@ -318,7 +335,7 @@ Recent Visitor Travel Guides:
         try:
             # 1. Check Groq API Key
             if settings.GROQ_API_KEY and settings.GROQ_API_KEY.startswith("gsk_"):
-                model_name = "llama-3.1-8b-instant"
+                model_name = "openai/gpt-oss-20b"
                 client = Groq(api_key=settings.GROQ_API_KEY)
 
                 messages_payload = [{"role": "system", "content": system_instruction}]
@@ -326,7 +343,9 @@ Recent Visitor Travel Guides:
                 # Include previous conversation history (excluding the current user message just inserted)
                 for h_msg in history_msgs[:-1]:
                     if h_msg.role in ("user", "assistant") and h_msg.content:
-                        messages_payload.append({"role": h_msg.role, "content": h_msg.content})
+                        messages_payload.append(
+                            {"role": h_msg.role, "content": h_msg.content}
+                        )
 
                 # Append current turn with context
                 current_prompt = f"{context_doc}\n\nUser Question: {user_content}"
@@ -345,7 +364,9 @@ Recent Visitor Travel Guides:
                         yield f"data: {data}\n\n"
 
             # 2. Check Gemini API Key
-            elif settings.GEMINI_API_KEY and not settings.GEMINI_API_KEY.startswith("AIzaSyCpfJNwOtxvDNEnlpyeLHl"):
+            elif settings.GEMINI_API_KEY and not settings.GEMINI_API_KEY.startswith(
+                "AIzaSyCpfJNwOtxvDNEnlpyeLHl"
+            ):
                 model_name = "gemini-2.5-flash"
                 client = genai.Client(api_key=settings.GEMINI_API_KEY)
                 response_stream = client.models.generate_content_stream(
@@ -374,7 +395,9 @@ Recent Visitor Travel Guides:
 
         except Exception as e:
             logger.error(f"Error calling Gemini SDK: {e}")
-            fallback = f"I'm sorry, I encountered an issue processing your request: {str(e)}"
+            fallback = (
+                f"I'm sorry, I encountered an issue processing your request: {e!s}"
+            )
             full_response_text = fallback
             yield f"data: {json.dumps({'chunk': fallback})}\n\n"
 
